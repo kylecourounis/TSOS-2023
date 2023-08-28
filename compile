@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ ! -d "distrib" ]
+then
+  mkdir distrib
+  echo Created dist directory
+fi
+
+tsc --version
+echo Starting TypeScript compile
+tsc --rootDir source/ --outDir distrib/
+echo Finished
