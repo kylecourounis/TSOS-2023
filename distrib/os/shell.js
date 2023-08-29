@@ -48,6 +48,9 @@ var TSOS;
             // date
             sc = new TSOS.ShellCommand(this.shellDate, "date", "Displays the current date and time in the shell.");
             this.commandList[this.commandList.length] = sc;
+            // whereami
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "Tells the user where they are.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -250,6 +253,9 @@ var TSOS;
         shellDate(args) {
             let date = new Date();
             _StdOut.putText(date.toLocaleString());
+        }
+        shellWhereAmI(args) {
+            _StdOut.putText("Inside Your Head!");
         }
     }
     TSOS.Shell = Shell;
