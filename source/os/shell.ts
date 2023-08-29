@@ -86,6 +86,12 @@ module TSOS {
                                   "Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
 
+            // status
+            sc = new ShellCommand(this.shellStatus,
+                                  "status",
+                                  "Sets the value of the status element on the VM.");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
 
@@ -305,6 +311,10 @@ module TSOS {
 
         public shellWhereAmI(args: string[]) {
             _StdOut.putText("Inside Your Head!");
+        }
+
+        public shellStatus(args: string[]) {
+            // TODO - set the 
         }
     }
 }

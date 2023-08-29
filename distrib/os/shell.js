@@ -51,6 +51,9 @@ var TSOS;
             // whereami
             sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
+            // status
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "Sets the value of the status element on the VM.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -256,6 +259,9 @@ var TSOS;
         }
         shellWhereAmI(args) {
             _StdOut.putText("Inside Your Head!");
+        }
+        shellStatus(args) {
+            // TODO - set the 
         }
     }
     TSOS.Shell = Shell;
