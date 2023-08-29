@@ -45,6 +45,9 @@ var TSOS;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
+            // date
+            sc = new TSOS.ShellCommand(this.shellDate, "date", "Displays the current date and time in the shell.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -243,6 +246,10 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
+        }
+        shellDate(args) {
+            let date = new Date();
+            _StdOut.putText(date.toLocaleString());
         }
     }
     TSOS.Shell = Shell;
