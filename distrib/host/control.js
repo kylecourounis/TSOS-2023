@@ -34,6 +34,9 @@ var TSOS;
             // Set focus on the start button.
             // Use the TypeScript cast to HTMLInputElement
             document.getElementById("btnStartOS").focus();
+            // Set the date and time element to a string formatted in the correct locale
+            let date = new Date();
+            document.getElementById("date-time").innerHTML = date.toLocaleString();
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {

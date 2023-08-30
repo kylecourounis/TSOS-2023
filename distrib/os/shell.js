@@ -261,7 +261,12 @@ var TSOS;
             _StdOut.putText("Inside Your Head!");
         }
         shellStatus(args) {
-            // TODO - set the 
+            if (args.length > 0) {
+                document.getElementById("status-message").innerHTML = args[0];
+            }
+            else {
+                _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
         }
     }
     TSOS.Shell = Shell;

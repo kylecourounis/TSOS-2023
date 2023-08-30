@@ -314,7 +314,11 @@ module TSOS {
         }
 
         public shellStatus(args: string[]) {
-            // TODO - set the 
+            if (args.length > 0) {
+                (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = args[0];
+            } else {
+                _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
         }
     }
 }
