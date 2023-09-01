@@ -22,6 +22,11 @@ var TSOS;
     class Control {
         static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
+            setInterval(() => {
+                // Set the date and time element to a string formatted in the correct locale
+                let date = new Date();
+                document.getElementById("date-time").innerHTML = date.toLocaleString();
+            }, 100);
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
             _Canvas = document.getElementById('display');
             // Get a global reference to the drawing context.
@@ -34,9 +39,6 @@ var TSOS;
             // Set focus on the start button.
             // Use the TypeScript cast to HTMLInputElement
             document.getElementById("btnStartOS").focus();
-            // Set the date and time element to a string formatted in the correct locale
-            let date = new Date();
-            document.getElementById("date-time").innerHTML = date.toLocaleString();
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
