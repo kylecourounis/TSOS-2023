@@ -86,6 +86,12 @@ module TSOS {
                                   "Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
 
+            // quote
+            sc = new ShellCommand(this.shellRandomQuote,
+                                  "quote",
+                                  "Tells the user a random quote.");
+            this.commandList[this.commandList.length] = sc;
+
             // status
             sc = new ShellCommand(this.shellStatus,
                                   "status",
@@ -347,6 +353,18 @@ module TSOS {
 
         public shellWhereAmI(args: string[]) {
             _StdOut.putText("Inside Your Head!");
+        }
+
+        public shellRandomQuote(args: string[]) {
+            let quotes: string[] = [
+                "Do...or do not...there is no try - Yoda",
+                "You must do what you feel is right, of course - Obi Wan Kenobi",
+                "Apology accepted, Captain Needa - Darth Vader",
+                "Don't take any shit from anybody - Billy Joel",
+                "Is there anybody alive out there? - Bruce Springsteen"
+            ];
+
+            _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
         }
 
         public shellStatus(args: string[]) {

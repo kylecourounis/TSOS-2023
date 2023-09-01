@@ -51,6 +51,9 @@ var TSOS;
             // whereami
             sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
+            // quote
+            sc = new TSOS.ShellCommand(this.shellRandomQuote, "quote", "Tells the user a random quote.");
+            this.commandList[this.commandList.length] = sc;
             // status
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
@@ -285,6 +288,16 @@ var TSOS;
         }
         shellWhereAmI(args) {
             _StdOut.putText("Inside Your Head!");
+        }
+        shellRandomQuote(args) {
+            let quotes = [
+                "Do...or do not...there is no try - Yoda",
+                "You must do what you feel is right, of course - Obi Wan Kenobi",
+                "Apology accepted, Captain Needa - Darth Vader",
+                "Don't take any shit from anybody - Billy Joel",
+                "Is there anybody alive out there? - Bruce Springsteen"
+            ];
+            _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
         }
         shellStatus(args) {
             if (args.length > 0) {
