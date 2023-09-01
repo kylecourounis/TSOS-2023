@@ -25,6 +25,12 @@ module TSOS {
         public static hostInit(): void {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
 
+            setInterval(() => {
+                // Set the date and time element to a string formatted in the correct locale
+                let date = new Date();
+                (<HTMLSpanElement>document.getElementById("date-time")).innerHTML = date.toLocaleString();
+            }, 100);
+
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
             _Canvas = <HTMLCanvasElement>document.getElementById('display');
 
@@ -65,7 +71,6 @@ module TSOS {
             // Update the log console.
             var taLog = <HTMLInputElement> document.getElementById("taHostLog");
             taLog.value = str + taLog.value;
-
             // TODO in the future: Optionally update a log database or some streaming service.
         }
 

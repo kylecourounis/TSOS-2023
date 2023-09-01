@@ -73,6 +73,31 @@ module TSOS {
                                   "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
 
+
+            // date
+            sc = new ShellCommand(this.shellDate,
+                                  "date",
+                                  "Displays the current date and time in the shell.");
+            this.commandList[this.commandList.length] = sc;
+
+            // whereami
+            sc = new ShellCommand(this.shellWhereAmI,
+                                  "whereami",
+                                  "Tells the user where they are.");
+            this.commandList[this.commandList.length] = sc;
+
+            // quote
+            sc = new ShellCommand(this.shellRandomQuote,
+                                  "quote",
+                                  "Tells the user a random quote.");
+            this.commandList[this.commandList.length] = sc;
+
+            // status
+            sc = new ShellCommand(this.shellStatus,
+                                  "status",
+                                  "Sets the value of the status element on the VM.");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
 
@@ -234,7 +259,43 @@ module TSOS {
                     case "help":
                         _StdOut.putText("Help displays a list of (hopefully) valid commands.");
                         break;
-                    // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
+
+                    case "ver":
+                        _StdOut.putText("Displays the current version of the operating system.");
+                        break;
+
+                    case "shutdown":
+                        _StdOut.putText("Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
+                        break;
+
+                    case "cls":
+                        _StdOut.putText("Clears the shell.");
+                        break;
+
+                    case "trace":
+                        _StdOut.putText("Turns the OS trace on or off.");
+                        break;
+
+                    case "rot13":
+                        _StdOut.putText("Does rot13 obfuscation on a specified string.");
+                        break;
+
+                    case "prompt":
+                        _StdOut.putText("Sets the prompt string. (Replaces the default '>')");
+                        break;
+
+                    case "date":
+                        _StdOut.putText("Returns the current date and time.");
+                        break;
+                        
+                    case "whereami":
+                        _StdOut.putText("Returns your current location.");
+                        break;
+
+                    case "status":
+                        _StdOut.putText("Sets the status message on the host window.");
+                        break;
+
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -284,5 +345,34 @@ module TSOS {
             }
         }
 
+        public shellDate(args: string[]) {
+            let date = new Date();
+
+            _StdOut.putText(date.toLocaleString());
+        }
+
+        public shellWhereAmI(args: string[]) {
+            _StdOut.putText("Inside Your Head!");
+        }
+
+        public shellRandomQuote(args: string[]) {
+            let quotes: string[] = [
+                "Do...or do not...there is no try - Yoda",
+                "You must do what you feel is right, of course - Obi Wan Kenobi",
+                "Apology accepted, Captain Needa - Darth Vader",
+                "Don't take any shit from anybody - Billy Joel",
+                "Is there anybody alive out there? - Bruce Springsteen"
+            ];
+
+            _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
+        }
+
+        public shellStatus(args: string[]) {
+            if (args.length > 0) {
+                (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = args[0];
+            } else {
+                _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
+        }
     }
 }
