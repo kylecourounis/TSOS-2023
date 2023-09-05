@@ -17,10 +17,16 @@ module TSOS {
         public curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         public apologies = "[sorry]";
 
+        public previousCommands: Array<string>;
+        public previousCommandIdx: number;
+
         constructor() {
         }
 
         public init() {
+            this.previousCommands = [];
+            this.previousCommandIdx = 0;
+
             var sc: ShellCommand;
             //
             // Load the command list.
@@ -147,6 +153,9 @@ module TSOS {
                     this.execute(this.shellInvalidCommand);
                 }
             }
+
+            this.previousCommands.push(cmd);
+            this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
         }
 
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.

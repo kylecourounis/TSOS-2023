@@ -15,9 +15,13 @@ var TSOS;
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         apologies = "[sorry]";
+        previousCommands;
+        previousCommandIdx;
         constructor() {
         }
         init() {
+            this.previousCommands = [];
+            this.previousCommandIdx = 0;
             var sc;
             //
             // Load the command list.
@@ -107,6 +111,8 @@ var TSOS;
                     this.execute(this.shellInvalidCommand);
                 }
             }
+            this.previousCommands.push(cmd);
+            this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
         }
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
         execute(fn, args) {

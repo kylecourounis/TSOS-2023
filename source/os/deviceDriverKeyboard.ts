@@ -47,6 +47,16 @@ module TSOS {
                         (keyCode == 13)) {                       // enter
                 chr = String.fromCharCode(keyCode);
                 _KernelInputQueue.enqueue(chr);
+            } else if (keyCode == 8) {
+                // Backspace
+                
+            } else if (keyCode == 38) {
+                // Up arrow
+                let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx--];
+                console.log(_OsShell.previousCommands);
+
+                _Console.buffer = ""; // clear buffer
+                _Console.putText(prevCommand); // put previous command there
             }
         }
     }
