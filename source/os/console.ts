@@ -113,9 +113,19 @@ module TSOS {
         public advanceLine(): void {
             this.currentXPosition = 0;
             
-            this.currentYPosition += this.getLineHeight();
+            // Was wondering why this wasn't working for a solid 20 minutes and then realized that I didn't put '+ this.getLineHeight()' *facepalm*
+            if (this.currentYPosition + this.getLineHeight() > _Canvas.height) {
+                // Get the entire canvas.
+                // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData
+                let image = _DrawingContext.getImageData(0, this.getLineHeight(), _Canvas.width, _Canvas.height - this.getLineHeight());
+                
+                this.clearScreen();
 
-            // TODO: Handle scrolling. (iProject 1)
+                // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/putImageData
+                _DrawingContext.putImageData(image, 0, 0);
+            } else {
+                this.currentYPosition += this.getLineHeight();
+            }
         }
 
         public getLineHeight(): number {

@@ -108,7 +108,16 @@ var TSOS;
         }
         advanceLine() {
             this.currentXPosition = 0;
-            this.currentYPosition += this.getLineHeight();
+            if (this.currentYPosition + this.getLineHeight() > _Canvas.height) {
+                // Get the entire canvas.
+                // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData
+                let image = _DrawingContext.getImageData(0, this.getLineHeight(), _Canvas.width, _Canvas.height - this.getLineHeight());
+                this.clearScreen();
+                _DrawingContext.putImageData(image, 0, 0);
+            }
+            else {
+                this.currentYPosition += this.getLineHeight();
+            }
             // TODO: Handle scrolling. (iProject 1)
         }
         getLineHeight() {
