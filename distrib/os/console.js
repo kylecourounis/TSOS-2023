@@ -53,13 +53,12 @@ var TSOS;
                             ;
                         _OsShell.previousCommandIdx += (chr === String.fromCharCode(38)) ? -1 : 1;
                         let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
-                        console.log(_OsShell.previousCommands);
-                        _Console.putText(prevCommand); // put previous command there
                         if (chr === String.fromCharCode(40) && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
                             this.buffer = "";
                         }
                         else {
                             this.buffer += prevCommand;
+                            _Console.putText(prevCommand); // put previous command there    
                         }
                     }
                     else {
