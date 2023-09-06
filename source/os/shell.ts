@@ -104,6 +104,12 @@ module TSOS {
                                   "Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
 
+            // load
+            sc = new ShellCommand(this.shellLoad,
+                                 "load",
+                                 "Validates the user code from the textarea.");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
 
@@ -154,7 +160,10 @@ module TSOS {
                 }
             }
 
-            this.previousCommands.push(cmd);
+            if (cmd.length > 0) {
+                this.previousCommands.push(cmd);
+            }
+            
             this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
         }
 
@@ -301,8 +310,16 @@ module TSOS {
                         _StdOut.putText("Returns your current location.");
                         break;
 
+                    case "quote":
+                        _StdOut.putText("Prints a random quote to the user.");
+                        break;
+
                     case "status":
                         _StdOut.putText("Sets the status message on the host window.");
+                        break;
+
+                    case "load":
+                        _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
 
                     default:
@@ -374,6 +391,19 @@ module TSOS {
             ];
 
             _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
+        }
+
+        public shellLoad(args: string[]) {
+            let textArea = document.getElementById("taProgramInput");
+
+            // I found this regular expression to test for hex characters here: https://stackoverflow.com/a/5317339
+            let regex = new RegExp("^[0-9A-F, ]+$");
+            
+            if (regex.test((<HTMLInputElement>textArea).value)) {
+                _StdOut.putText("The user program is valid.");
+            } else {
+                _StdOut.putText("The user program is invalid.");
+            }
         }
 
         public shellStatus(args: string[]) {

@@ -61,6 +61,9 @@ var TSOS;
             // status
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
+            // load
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", "Validates the user code from the textarea.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -111,7 +114,9 @@ var TSOS;
                     this.execute(this.shellInvalidCommand);
                 }
             }
-            this.previousCommands.push(cmd);
+            if (cmd.length > 0) {
+                this.previousCommands.push(cmd);
+            }
             this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
         }
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
@@ -235,8 +240,14 @@ var TSOS;
                     case "whereami":
                         _StdOut.putText("Returns your current location.");
                         break;
+                    case "quote":
+                        _StdOut.putText("Prints a random quote to the user.");
+                        break;
                     case "status":
                         _StdOut.putText("Sets the status message on the host window.");
+                        break;
+                    case "load":
+                        _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -304,6 +315,17 @@ var TSOS;
                 "Is there anybody alive out there? - Bruce Springsteen"
             ];
             _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
+        }
+        shellLoad(args) {
+            let textArea = document.getElementById("taProgramInput");
+            // I found this regular expression to test for hex characters here: https://stackoverflow.com/a/5317339
+            let regex = new RegExp("^[0-9A-F, ]+$");
+            if (regex.test(textArea.value)) {
+                _StdOut.putText("The user program is valid.");
+            }
+            else {
+                _StdOut.putText("The user program is invalid.");
+            }
         }
         shellStatus(args) {
             if (args.length > 0) {

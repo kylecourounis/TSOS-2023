@@ -41,6 +41,29 @@ module TSOS {
                     _OsShell.handleInput(this.buffer);
                     // ... and reset our buffer.
                     this.buffer = "";
+                } else if (chr === String.fromCharCode(8)) {
+                    // Backspace
+                    this.backspace();
+                } else if (chr === String.fromCharCode(38) || chr === String.fromCharCode(40)) {
+                    // Ensure we can't go below zero.
+                    if (_OsShell.previousCommandIdx >= 0) {
+                        while (this.backspace()) ;
+
+                        _OsShell.previousCommandIdx += (chr === String.fromCharCode(38)) ? -1 : 1;
+
+                        let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
+                        console.log(_OsShell.previousCommands);
+                        
+                        _Console.putText(prevCommand); // put previous command there
+
+                        if (chr === String.fromCharCode(40) && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
+                            this.buffer = "";
+                        } else {
+                            this.buffer += prevCommand;
+                        }
+                    } else {
+
+                    }
                 } else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...
@@ -67,20 +90,47 @@ module TSOS {
                 var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 this.currentXPosition = this.currentXPosition + offset;
             }
-         }
+        }
+
+        public backspace(): boolean {
+            if (this.buffer.length > 0) {
+                // Calculate the size of the previous character
+                let charSize = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+    
+                // Draw blank rectangle at the x & y coordinates
+                _DrawingContext.clearRect(this.currentXPosition - charSize, this.currentYPosition - this.currentFontSize - _FontHeightMargin, charSize, this.getLineHeight());
+    
+                // Reset X to previous position
+                this.currentXPosition = this.currentXPosition - charSize;
+
+                // Remove the character from the buffer
+                this.buffer = this.buffer.substring(0, this.buffer.length - 1); 
+    
+                return true;
+            } else {
+                return false;
+            }
+        }
 
         public advanceLine(): void {
             this.currentXPosition = 0;
+            
+            this.currentYPosition += this.getLineHeight();
+
+            // TODO: Handle scrolling. (iProject 1)
+        }
+
+        public getLineHeight(): number {
             /*
              * Font size measures from the baseline to the highest point in the font.
              * Font descent measures from the baseline to the lowest point in the font.
              * Font height margin is extra spacing between the lines.
+             * 
+             * Taken from the advanceLine() method above
              */
-            this.currentYPosition += _DefaultFontSize + 
-                                     _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
-                                     _FontHeightMargin;
-
-            // TODO: Handle scrolling. (iProject 1)
+            return _DefaultFontSize + 
+                   _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                   _FontHeightMargin;
         }
     }
  }
