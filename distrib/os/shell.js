@@ -64,6 +64,9 @@ var TSOS;
             // load
             sc = new TSOS.ShellCommand(this.shellLoad, "load", "Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
+            // bsod
+            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "Triggers the trap error function.");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
             // Display the initial prompt.
@@ -249,6 +252,9 @@ var TSOS;
                     case "load":
                         _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
+                    case "bsod":
+                        _StdOut.putText("Triggers a BSOD for testing purposes.");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -305,6 +311,9 @@ var TSOS;
         }
         shellWhereAmI(args) {
             _StdOut.putText("Inside Your Head!");
+        }
+        shellBSOD(args) {
+            _Kernel.krnTrapError("Testing from command line!");
         }
         shellRandomQuote(args) {
             let quotes = [

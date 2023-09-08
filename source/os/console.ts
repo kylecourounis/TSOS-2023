@@ -115,14 +115,14 @@ module TSOS {
             
             // Was wondering why this wasn't working for a solid 20 minutes and then realized that I didn't put '+ this.getLineHeight()' *facepalm*
             if (this.currentYPosition + this.getLineHeight() > _Canvas.height) {
-                // Get the entire canvas.
+                // Get the entire canvas (minus the top line) as an image and put it in a variable
                 // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData
                 let image = _DrawingContext.getImageData(0, this.getLineHeight(), _Canvas.width, _Canvas.height - this.getLineHeight());
                 
-                this.clearScreen();
+                this.clearScreen(); // Clear the whole screen before we move up
 
                 // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/putImageData
-                _DrawingContext.putImageData(image, 0, 0);
+                _DrawingContext.putImageData(image, 0, 0); // put the canvas content back. 
             } else {
                 this.currentYPosition += this.getLineHeight();
             }

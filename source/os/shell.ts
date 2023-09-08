@@ -110,6 +110,12 @@ module TSOS {
                                  "Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
 
+            // bsod
+            sc = new ShellCommand(this.shellBSOD,
+                                  "bsod",
+                                  "Triggers the trap error function.");
+            this.commandList[this.commandList.length] = sc;
+
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
 
@@ -322,6 +328,10 @@ module TSOS {
                         _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
 
+                    case "bsod":
+                        _StdOut.putText("Triggers a BSOD for testing purposes.");
+                        break;
+
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -379,6 +389,10 @@ module TSOS {
 
         public shellWhereAmI(args: string[]) {
             _StdOut.putText("Inside Your Head!");
+        }
+
+        public shellBSOD(args: string[]) {
+            _Kernel.krnTrapError("Testing from command line!");
         }
 
         public shellRandomQuote(args: string[]) {
