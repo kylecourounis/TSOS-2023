@@ -422,11 +422,18 @@ module TSOS {
 
             // I found this regular expression to test for hex characters here: https://stackoverflow.com/a/5317339
             let regex = new RegExp("^[0-9A-F, ]+$");
-            
-            if (regex.test((<HTMLInputElement>textArea).value)) {
-                _StdOut.putText("The user program is valid.");
-            } else {
-                _StdOut.putText("The user program is invalid.");
+
+            // Using JSON.stringify to get the raw value including the new line and other symbols
+            let value = JSON.stringify((<HTMLInputElement>textArea).value);
+
+            if (value.length > 0) {
+                value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
+                    
+                if (regex.test(value.replaceAll("\\n", " "))) {
+                    _StdOut.putText("The user program is valid.");
+                } else {
+                    _StdOut.putText("The user program is invalid.");
+                }
             }
         }
 
