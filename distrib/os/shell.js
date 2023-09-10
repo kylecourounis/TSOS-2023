@@ -17,11 +17,13 @@ var TSOS;
         apologies = "[sorry]";
         previousCommands;
         previousCommandIdx;
+        completionIdx;
         constructor() {
         }
         init() {
             this.previousCommands = [];
             this.previousCommandIdx = 0;
+            this.completionIdx = 0;
             var sc;
             //
             // Load the command list.
@@ -63,6 +65,9 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             // load
             sc = new TSOS.ShellCommand(this.shellLoad, "load", "Validates the user code from the textarea.");
+            this.commandList[this.commandList.length] = sc;
+            // load
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "link", "Test command.");
             this.commandList[this.commandList.length] = sc;
             // bsod
             sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "Triggers the trap error function.");

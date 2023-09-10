@@ -46,23 +46,13 @@ var TSOS;
                     // Backspace
                     this.backspace();
                 }
+                else if (chr === String.fromCharCode(9)) {
+                    // Tab
+                    this.completeCommand();
+                }
                 else if (chr === String.fromCharCode(38) || chr === String.fromCharCode(40)) {
-                    // Ensure we can't go below zero.
-                    if (_OsShell.previousCommandIdx >= 0) {
-                        while (this.backspace())
-                            ;
-                        _OsShell.previousCommandIdx += (chr === String.fromCharCode(38)) ? -1 : 1;
-                        let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
-                        if (chr === String.fromCharCode(40) && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
-                            this.buffer = "";
-                        }
-                        else {
-                            this.buffer += prevCommand;
-                            _Console.putText(prevCommand); // put previous command there    
-                        }
-                    }
-                    else {
-                    }
+                    // Up & Down
+                    this.commandHistory(chr);
                 }
                 else {
                     // This is a "normal" character, so ...
@@ -88,6 +78,39 @@ var TSOS;
                 // Move the current X position.
                 var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 this.currentXPosition = this.currentXPosition + offset;
+            }
+        }
+        completeCommand() {
+            let currentTxt = _Console.buffer; // store whatever is currently in the buffer
+            let filteredCommands = _OsShell.commandList.filter(cmd => cmd.command.startsWith(currentTxt));
+            if (_OsShell.completionIdx === filteredCommands.length - 1) {
+                _OsShell.completionIdx = 0;
+            }
+            console.log(filteredCommands);
+            console.log(_OsShell.completionIdx);
+            if (_OsShell.completionIdx >= 0) {
+                while (this.backspace())
+                    ; // Remove everything currently in the prompt
+                let cmd = filteredCommands[_OsShell.completionIdx];
+                _Console.buffer = cmd.command;
+                _Console.putText(cmd.command);
+                _OsShell.completionIdx++;
+            }
+        }
+        commandHistory(chr) {
+            // Ensure we can't go below zero.
+            if (_OsShell.previousCommandIdx >= 0) {
+                while (this.backspace())
+                    ;
+                _OsShell.previousCommandIdx += (chr === String.fromCharCode(38)) ? -1 : 1;
+                let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
+                if (chr === String.fromCharCode(40) && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
+                    this.buffer = "";
+                }
+                else {
+                    this.buffer += prevCommand;
+                    _Console.putText(prevCommand); // put previous command there    
+                }
             }
         }
         backspace() {
