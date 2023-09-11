@@ -20,16 +20,12 @@ module TSOS {
         public previousCommands: Array<string>;
         public previousCommandIdx: number;
 
-        public completionIdx: number;
-
         constructor() {
         }
 
         public init() {
             this.previousCommands = [];
             this.previousCommandIdx = 0;
-
-            this.completionIdx = 0;
 
             var sc: ShellCommand;
             //
@@ -113,13 +109,7 @@ module TSOS {
                                  "load",
                                  "Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
-
-            // load
-            sc = new ShellCommand(this.shellWhereAmI,
-                "link",
-                "Test command.");
-            this.commandList[this.commandList.length] = sc;
-
+            
             // bsod
             sc = new ShellCommand(this.shellBSOD,
                                   "bsod",

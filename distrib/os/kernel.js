@@ -149,10 +149,9 @@ var TSOS;
         }
         krnTrapError(msg) {
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
-            // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
             _Console.clearScreen(); // clear the screen
             _Canvas.style.backgroundColor = "blue";
-            _OsShell.promptStr = ""; // take away the prompt symbol - it's annoying and interrupts the message sometimes
+            _OsShell.promptStr = ""; // take away the prompt symbol - we no longer accept input because the interrupts are cancelled and it covers part of the message sometimes
             _DrawingContext.drawText(_Console.currentFont, _Console.currentFontSize, 0, 15, "ERROR!");
             _DrawingContext.drawText(_Console.currentFont, _Console.currentFontSize, 0, 40, msg);
             this.krnShutdown();

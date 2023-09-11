@@ -84,38 +84,41 @@ module TSOS {
             
             let filteredCommands = _OsShell.commandList.filter(cmd => cmd.command.startsWith(currentTxt));
 
-            if (_OsShell.completionIdx === filteredCommands.length - 1) {
-                _OsShell.completionIdx = 0;
-            }
-            console.log(filteredCommands);
-            console.log(_OsShell.completionIdx);
+            if (filteredCommands.length > 1) {
+                this.advanceLine();
+                for (let cmd in filteredCommands) {
+                    _StdOut.putText(filteredCommands[cmd].command + " ");
+                }
+                this.advanceLine();
 
-            if (_OsShell.completionIdx >= 0) {
+                _StdIn.putText(_OsShell.promptStr + this.buffer);
+            } else {
                 while (this.backspace()) ; // Remove everything currently in the prompt
 
-                let cmd = filteredCommands[_OsShell.completionIdx];
+                let cmd = filteredCommands[0];
                 
                 _Console.buffer = cmd.command;
                 _Console.putText(cmd.command);
-
-                _OsShell.completionIdx++;
             }
         }
 
-        public commandHistory(chr): void {
-            // Ensure we can't go below zero.
-            if (_OsShell.previousCommandIdx >= 0) {
+        public commandHistory(dir): void {
+            console.log(_OsShell.previousCommands);
+            console.log(_OsShell.previousCommandIdx);
+            
+            if (_OsShell.previousCommands.length > 0 && (_OsShell.previousCommandIdx >= 0 || _OsShell.previousCommandIdx < _OsShell.previousCommands.length - 1)) {
                 while (this.backspace()) ;
 
-                _OsShell.previousCommandIdx += (chr === "up") ? -1 : 1;
+                _OsShell.previousCommandIdx += (dir === "down") ? 1 : -1;
 
-                let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
-                
-                if (chr === "down" && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
+                if (dir === "down" && _OsShell.previousCommandIdx === -1) {
                     this.buffer = "";
+                    _OsShell.previousCommandIdx = _OsShell.previousCommands.length;
                 } else {
+                    let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
+    
                     this.buffer += prevCommand;
-                    _Console.putText(prevCommand); // put previous command there    
+                    _Console.putText(prevCommand); // put previous command there
                 }
             }
         }
