@@ -48,7 +48,7 @@ module TSOS {
                     // Tab
                     this.completeCommand();
                 }
-                else if (chr === String.fromCharCode(38) || chr === String.fromCharCode(40)) {
+                else if (chr === "up" || chr === "down") {
                     // Up & Down
                     this.commandHistory(chr);
                 } else {
@@ -107,11 +107,11 @@ module TSOS {
             if (_OsShell.previousCommandIdx >= 0) {
                 while (this.backspace()) ;
 
-                _OsShell.previousCommandIdx += (chr === String.fromCharCode(38)) ? -1 : 1;
+                _OsShell.previousCommandIdx += (chr === "up") ? -1 : 1;
 
                 let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
                 
-                if (chr === String.fromCharCode(40) && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
+                if (chr === "down" && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
                     this.buffer = "";
                 } else {
                     this.buffer += prevCommand;
