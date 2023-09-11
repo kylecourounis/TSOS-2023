@@ -100,15 +100,13 @@ var TSOS;
             }
         }
         commandHistory(dir) {
-            console.log(_OsShell.previousCommands);
-            console.log(_OsShell.previousCommandIdx);
-            if (_OsShell.previousCommands.length > 0 && (_OsShell.previousCommandIdx >= 0 || _OsShell.previousCommandIdx < _OsShell.previousCommands.length - 1)) {
+            if (_OsShell.previousCommands.length > 0 && ((dir === "up" && _OsShell.previousCommandIdx > 0) || (dir === "down" && _OsShell.previousCommandIdx < _OsShell.previousCommands.length))) {
                 while (this.backspace())
                     ;
                 _OsShell.previousCommandIdx += (dir === "down") ? 1 : -1;
-                if (dir === "down" && _OsShell.previousCommandIdx === -1) {
+                if (dir === "down" && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
                     this.buffer = "";
-                    _OsShell.previousCommandIdx = _OsShell.previousCommands.length;
+                    _OsShell.previousCommandIdx = _OsShell.previousCommands.length; // just reset this to be absolutely sure it's right and so that no indexing issues occur
                 }
                 else {
                     let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
@@ -116,6 +114,8 @@ var TSOS;
                     _Console.putText(prevCommand); // put previous command there
                 }
             }
+            console.log(_OsShell.previousCommands);
+            console.log(_OsShell.previousCommandIdx);
         }
         backspace() {
             if (this.buffer.length > 0) {
