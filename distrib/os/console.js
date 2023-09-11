@@ -42,6 +42,18 @@ var TSOS;
                     // ... and reset our buffer.
                     this.buffer = "";
                 }
+                else if (chr === String.fromCharCode(8)) {
+                    // Backspace
+                    this.backspace();
+                }
+                else if (chr === String.fromCharCode(9)) {
+                    // Tab
+                    this.completeCommand();
+                }
+                else if (chr === "up" || chr === "down") {
+                    // Up & Down
+                    this.commandHistory(chr);
+                }
                 else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...
@@ -68,17 +80,84 @@ var TSOS;
                 this.currentXPosition = this.currentXPosition + offset;
             }
         }
+        completeCommand() {
+            let currentTxt = this.buffer; // store whatever is currently in the buffer
+            let filteredCommands = _OsShell.commandList.filter(cmd => cmd.command.startsWith(currentTxt));
+            if (filteredCommands.length > 1) {
+                this.advanceLine();
+                for (let cmd in filteredCommands) {
+                    this.putText(filteredCommands[cmd].command + " ");
+                }
+                this.advanceLine();
+                _OsShell.putPrompt();
+                this.putText(this.buffer);
+            }
+            else {
+                while (this.backspace())
+                    ; // Remove everything currently in the prompt
+                let cmd = filteredCommands[0];
+                this.buffer = cmd.command;
+                this.putText(cmd.command);
+            }
+        }
+        commandHistory(dir) {
+            if (_OsShell.previousCommands.length > 0 && ((dir === "up" && _OsShell.previousCommandIdx > 0) || (dir === "down" && _OsShell.previousCommandIdx < _OsShell.previousCommands.length))) {
+                while (this.backspace())
+                    ;
+                _OsShell.previousCommandIdx += (dir === "down") ? 1 : -1;
+                if (dir === "down" && _OsShell.previousCommandIdx === _OsShell.previousCommands.length) {
+                    this.buffer = "";
+                    _OsShell.previousCommandIdx = _OsShell.previousCommands.length; // just reset this to be absolutely sure it's right and so that no indexing issues occur
+                }
+                else {
+                    let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
+                    this.buffer += prevCommand;
+                    this.putText(prevCommand); // put previous command there
+                }
+            }
+        }
+        backspace() {
+            if (this.buffer.length > 0) {
+                // Calculate the size of the previous character
+                let charSize = _DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer.charAt(this.buffer.length - 1));
+                // Draw blank rectangle at the x & y coordinates
+                _DrawingContext.clearRect(this.currentXPosition - charSize, this.currentYPosition - this.currentFontSize - _FontHeightMargin, charSize, this.getLineHeight());
+                // Reset X to previous position
+                this.currentXPosition = this.currentXPosition - charSize;
+                // Remove the character from the buffer
+                this.buffer = this.buffer.substring(0, this.buffer.length - 1);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
         advanceLine() {
             this.currentXPosition = 0;
+            // Was wondering why this wasn't working for a solid 20 minutes and then realized that I didn't put '+ this.getLineHeight()' *facepalm*
+            if (this.currentYPosition + this.getLineHeight() > _Canvas.height) {
+                // Get the entire canvas (minus the top line) as an image and put it in a variable
+                // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData
+                let image = _DrawingContext.getImageData(0, this.getLineHeight(), _Canvas.width, _Canvas.height - this.getLineHeight());
+                this.clearScreen(); // Clear the whole screen before we move up
+                // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/putImageData
+                _DrawingContext.putImageData(image, 0, 0); // put the canvas content back. 
+            }
+            else {
+                this.currentYPosition += this.getLineHeight();
+            }
+        }
+        getLineHeight() {
             /*
              * Font size measures from the baseline to the highest point in the font.
              * Font descent measures from the baseline to the lowest point in the font.
              * Font height margin is extra spacing between the lines.
+             *
+             * Taken from the advanceLine() method above
              */
-            this.currentYPosition += _DefaultFontSize +
+            return _DefaultFontSize +
                 _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
                 _FontHeightMargin;
-            // TODO: Handle scrolling. (iProject 1)
         }
     }
     TSOS.Console = Console;

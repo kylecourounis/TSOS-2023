@@ -17,10 +17,16 @@ module TSOS {
         public curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         public apologies = "[sorry]";
 
+        public previousCommands: Array<string>;
+        public previousCommandIdx: number;
+
         constructor() {
         }
 
         public init() {
+            this.previousCommands = [];
+            this.previousCommandIdx = 0;
+
             var sc: ShellCommand;
             //
             // Load the command list.
@@ -77,25 +83,37 @@ module TSOS {
             // date
             sc = new ShellCommand(this.shellDate,
                                   "date",
-                                  "Displays the current date and time in the shell.");
+                                  "- Displays the current date and time in the shell.");
             this.commandList[this.commandList.length] = sc;
 
             // whereami
             sc = new ShellCommand(this.shellWhereAmI,
                                   "whereami",
-                                  "Tells the user where they are.");
+                                  "- Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
 
             // quote
             sc = new ShellCommand(this.shellRandomQuote,
                                   "quote",
-                                  "Tells the user a random quote.");
+                                  "- Tells the user a random quote.");
             this.commandList[this.commandList.length] = sc;
 
             // status
             sc = new ShellCommand(this.shellStatus,
                                   "status",
-                                  "Sets the value of the status element on the VM.");
+                                  "- Sets the value of the status element on the VM.");
+            this.commandList[this.commandList.length] = sc;
+
+            // load
+            sc = new ShellCommand(this.shellLoad,
+                                 "load",
+                                 "- Validates the user code from the textarea.");
+            this.commandList[this.commandList.length] = sc;
+            
+            // bsod
+            sc = new ShellCommand(this.shellBSOD,
+                                  "bsod",
+                                  "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
 
             // ps  - list the running processes and their IDs
@@ -147,6 +165,12 @@ module TSOS {
                     this.execute(this.shellInvalidCommand);
                 }
             }
+
+            if (cmd.length > 0) {
+                this.previousCommands.push(cmd);
+            }
+            
+            this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
         }
 
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
@@ -292,8 +316,20 @@ module TSOS {
                         _StdOut.putText("Returns your current location.");
                         break;
 
+                    case "quote":
+                        _StdOut.putText("Prints a random quote to the user.");
+                        break;
+
                     case "status":
                         _StdOut.putText("Sets the status message on the host window.");
+                        break;
+
+                    case "load":
+                        _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
+                        break;
+
+                    case "bsod":
+                        _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
 
                     default:
@@ -355,6 +391,10 @@ module TSOS {
             _StdOut.putText("Inside Your Head!");
         }
 
+        public shellBSOD(args: string[]) {
+            _Kernel.krnTrapError("Testing from command line!");
+        }
+
         public shellRandomQuote(args: string[]) {
             let quotes: string[] = [
                 "Do...or do not...there is no try - Yoda",
@@ -367,9 +407,35 @@ module TSOS {
             _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
         }
 
+        public shellLoad(args: string[]) {
+            let textArea = document.getElementById("taProgramInput");
+
+            // I found this regular expression to test for hex characters here: https://stackoverflow.com/a/5317339
+            let regex = new RegExp("^[0-9A-F, ]+$");
+
+            // Using JSON.stringify to get the raw value including the new line and other symbols
+            let value = JSON.stringify((<HTMLInputElement>textArea).value);
+
+            if (value.length > 0) {
+                value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
+                    
+                if (regex.test(value.replaceAll("\\n", " "))) {
+                    _StdOut.putText("The user program is valid.");
+                } else {
+                    _StdOut.putText("The user program is invalid.");
+                }
+            }
+        }
+
         public shellStatus(args: string[]) {
             if (args.length > 0) {
-                (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = args[0];
+                let statusMessage = "";
+
+                for (let i in args) {
+                    statusMessage += args[i] + " ";
+                }
+
+                (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = statusMessage;
             } else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
             }

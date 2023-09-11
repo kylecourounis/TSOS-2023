@@ -15,9 +15,13 @@ var TSOS;
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         apologies = "[sorry]";
+        previousCommands;
+        previousCommandIdx;
         constructor() {
         }
         init() {
+            this.previousCommands = [];
+            this.previousCommandIdx = 0;
             var sc;
             //
             // Load the command list.
@@ -46,16 +50,22 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
             // date
-            sc = new TSOS.ShellCommand(this.shellDate, "date", "Displays the current date and time in the shell.");
+            sc = new TSOS.ShellCommand(this.shellDate, "date", "- Displays the current date and time in the shell.");
             this.commandList[this.commandList.length] = sc;
             // whereami
-            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "Tells the user where they are.");
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "- Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
             // quote
-            sc = new TSOS.ShellCommand(this.shellRandomQuote, "quote", "Tells the user a random quote.");
+            sc = new TSOS.ShellCommand(this.shellRandomQuote, "quote", "- Tells the user a random quote.");
             this.commandList[this.commandList.length] = sc;
             // status
-            sc = new TSOS.ShellCommand(this.shellStatus, "status", "Sets the value of the status element on the VM.");
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Sets the value of the status element on the VM.");
+            this.commandList[this.commandList.length] = sc;
+            // load
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates the user code from the textarea.");
+            this.commandList[this.commandList.length] = sc;
+            // bsod
+            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -107,6 +117,10 @@ var TSOS;
                     this.execute(this.shellInvalidCommand);
                 }
             }
+            if (cmd.length > 0) {
+                this.previousCommands.push(cmd);
+            }
+            this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
         }
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
         execute(fn, args) {
@@ -229,8 +243,17 @@ var TSOS;
                     case "whereami":
                         _StdOut.putText("Returns your current location.");
                         break;
+                    case "quote":
+                        _StdOut.putText("Prints a random quote to the user.");
+                        break;
                     case "status":
                         _StdOut.putText("Sets the status message on the host window.");
+                        break;
+                    case "load":
+                        _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
+                        break;
+                    case "bsod":
+                        _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
@@ -289,6 +312,9 @@ var TSOS;
         shellWhereAmI(args) {
             _StdOut.putText("Inside Your Head!");
         }
+        shellBSOD(args) {
+            _Kernel.krnTrapError("Testing from command line!");
+        }
         shellRandomQuote(args) {
             let quotes = [
                 "Do...or do not...there is no try - Yoda",
@@ -299,9 +325,29 @@ var TSOS;
             ];
             _StdOut.putText(quotes[Math.floor(Math.random() * quotes.length)]);
         }
+        shellLoad(args) {
+            let textArea = document.getElementById("taProgramInput");
+            // I found this regular expression to test for hex characters here: https://stackoverflow.com/a/5317339
+            let regex = new RegExp("^[0-9A-F, ]+$");
+            // Using JSON.stringify to get the raw value including the new line and other symbols
+            let value = JSON.stringify(textArea.value);
+            if (value.length > 0) {
+                value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
+                if (regex.test(value.replaceAll("\\n", " "))) {
+                    _StdOut.putText("The user program is valid.");
+                }
+                else {
+                    _StdOut.putText("The user program is invalid.");
+                }
+            }
+        }
         shellStatus(args) {
             if (args.length > 0) {
-                document.getElementById("status-message").innerHTML = args[0];
+                let statusMessage = "";
+                for (let i in args) {
+                    statusMessage += args[i] + " ";
+                }
+                document.getElementById("status-message").innerHTML = statusMessage;
             }
             else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
