@@ -83,37 +83,37 @@ module TSOS {
             // date
             sc = new ShellCommand(this.shellDate,
                                   "date",
-                                  "Displays the current date and time in the shell.");
+                                  "- Displays the current date and time in the shell.");
             this.commandList[this.commandList.length] = sc;
 
             // whereami
             sc = new ShellCommand(this.shellWhereAmI,
                                   "whereami",
-                                  "Tells the user where they are.");
+                                  "- Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
 
             // quote
             sc = new ShellCommand(this.shellRandomQuote,
                                   "quote",
-                                  "Tells the user a random quote.");
+                                  "- Tells the user a random quote.");
             this.commandList[this.commandList.length] = sc;
 
             // status
             sc = new ShellCommand(this.shellStatus,
                                   "status",
-                                  "Sets the value of the status element on the VM.");
+                                  "- Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
 
             // load
             sc = new ShellCommand(this.shellLoad,
                                  "load",
-                                 "Validates the user code from the textarea.");
+                                 "- Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
             
             // bsod
             sc = new ShellCommand(this.shellBSOD,
                                   "bsod",
-                                  "Triggers the trap error function.");
+                                  "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
 
             // ps  - list the running processes and their IDs
@@ -429,7 +429,13 @@ module TSOS {
 
         public shellStatus(args: string[]) {
             if (args.length > 0) {
-                (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = args[0];
+                let statusMessage = "";
+
+                for (let i in args) {
+                    statusMessage += args[i] + " ";
+                }
+
+                (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = statusMessage;
             } else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
             }

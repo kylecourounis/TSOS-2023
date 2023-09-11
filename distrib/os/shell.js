@@ -50,22 +50,22 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
             // date
-            sc = new TSOS.ShellCommand(this.shellDate, "date", "Displays the current date and time in the shell.");
+            sc = new TSOS.ShellCommand(this.shellDate, "date", "- Displays the current date and time in the shell.");
             this.commandList[this.commandList.length] = sc;
             // whereami
-            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "Tells the user where they are.");
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", "- Tells the user where they are.");
             this.commandList[this.commandList.length] = sc;
             // quote
-            sc = new TSOS.ShellCommand(this.shellRandomQuote, "quote", "Tells the user a random quote.");
+            sc = new TSOS.ShellCommand(this.shellRandomQuote, "quote", "- Tells the user a random quote.");
             this.commandList[this.commandList.length] = sc;
             // status
-            sc = new TSOS.ShellCommand(this.shellStatus, "status", "Sets the value of the status element on the VM.");
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
             // load
-            sc = new TSOS.ShellCommand(this.shellLoad, "load", "Validates the user code from the textarea.");
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
             // bsod
-            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "Triggers the trap error function.");
+            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -343,7 +343,11 @@ var TSOS;
         }
         shellStatus(args) {
             if (args.length > 0) {
-                document.getElementById("status-message").innerHTML = args[0];
+                let statusMessage = "";
+                for (let i in args) {
+                    statusMessage += args[i] + " ";
+                }
+                document.getElementById("status-message").innerHTML = statusMessage;
             }
             else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");

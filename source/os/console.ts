@@ -80,25 +80,26 @@ module TSOS {
         }
 
         public completeCommand(): void {
-            let currentTxt = _Console.buffer; // store whatever is currently in the buffer
+            let currentTxt = this.buffer; // store whatever is currently in the buffer
             
             let filteredCommands = _OsShell.commandList.filter(cmd => cmd.command.startsWith(currentTxt));
 
             if (filteredCommands.length > 1) {
                 this.advanceLine();
                 for (let cmd in filteredCommands) {
-                    _StdOut.putText(filteredCommands[cmd].command + " ");
+                    this.putText(filteredCommands[cmd].command + " ");
                 }
                 this.advanceLine();
 
-                _StdIn.putText(_OsShell.promptStr + this.buffer);
+                _OsShell.putPrompt();
+                this.putText(this.buffer);
             } else {
                 while (this.backspace()) ; // Remove everything currently in the prompt
 
                 let cmd = filteredCommands[0];
                 
-                _Console.buffer = cmd.command;
-                _Console.putText(cmd.command);
+                this.buffer = cmd.command;
+                this.putText(cmd.command);
             }
         }
 
@@ -115,12 +116,9 @@ module TSOS {
                     let prevCommand = _OsShell.previousCommands[_OsShell.previousCommandIdx];
     
                     this.buffer += prevCommand;
-                    _Console.putText(prevCommand); // put previous command there
+                    this.putText(prevCommand); // put previous command there
                 }
             }
-
-            console.log(_OsShell.previousCommands);
-            console.log(_OsShell.previousCommandIdx);
         }
 
         public backspace(): boolean {
