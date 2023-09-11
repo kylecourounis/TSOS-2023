@@ -1,5 +1,6 @@
-2019 - 2021 Browser-based Operating System in TypeScript
+CourounOS
 ========================================================
+Please grade the main branch.
 
 This is Alan's Operating Systems class initial project.
 See https://www.labouseur.com/courses/os/ for details.
