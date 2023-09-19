@@ -110,16 +110,6 @@ module TSOS {
                     break;
                 }
         
-                case OpCode.TXA: {
-                    this.Acc = this.Xreg;
-                    break;
-                }
-        
-                case OpCode.TYA: {
-                    this.Acc = this.Yreg;
-                    break;
-                }
-        
                 case OpCode.ADC: {
                     this.Acc += _MMU.read();
                     break;
@@ -132,11 +122,6 @@ module TSOS {
         
                 case OpCode.LDX_M: {
                     this.Xreg = _MMU.getMDR();
-                    break;
-                }
-        
-                case OpCode.TAX: {
-                    this.Xreg = this.Acc;
                     break;
                 }
         
@@ -177,8 +162,8 @@ module TSOS {
         
                 case OpCode.BNE: {
                     if (this.Zflag == 0x01) {
-                    let offset = this.getOffset(_MMU.getMDR());
-                    this.PC -= offset;
+                        let offset = this.getOffset(_MMU.getMDR());
+                        this.PC -= offset;
                     }
         
                     break;
@@ -186,6 +171,7 @@ module TSOS {
         
                 case OpCode.INC: {
                     this.Acc = _MMU.getMDR();
+                    this.Acc += 1;
                     _MMU.write(this.Acc);
         
                     break;
