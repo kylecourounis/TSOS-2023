@@ -24,7 +24,7 @@ module TSOS {
         }
 
         public init(): void {
-            this.memory = new Uint8Array(0xFFFF);
+            this.memory = new Uint8Array(0x300);
 
             for (let i = 0x0; i < this.memory.length; i++) {
                 this.memory[i] = 0x00;

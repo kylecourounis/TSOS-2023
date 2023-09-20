@@ -99,14 +99,6 @@ var TSOS;
                     _MMU.write(this.Acc);
                     break;
                 }
-                case TSOS.OpCode.TXA: {
-                    this.Acc = this.Xreg;
-                    break;
-                }
-                case TSOS.OpCode.TYA: {
-                    this.Acc = this.Yreg;
-                    break;
-                }
                 case TSOS.OpCode.ADC: {
                     this.Acc += _MMU.read();
                     break;
@@ -117,10 +109,6 @@ var TSOS;
                 }
                 case TSOS.OpCode.LDX_M: {
                     this.Xreg = _MMU.getMDR();
-                    break;
-                }
-                case TSOS.OpCode.TAX: {
-                    this.Xreg = this.Acc;
                     break;
                 }
                 case TSOS.OpCode.LDY_C: {
@@ -161,6 +149,7 @@ var TSOS;
                 }
                 case TSOS.OpCode.INC: {
                     this.Acc = _MMU.getMDR();
+                    this.Acc += 1;
                     _MMU.write(this.Acc);
                     break;
                 }

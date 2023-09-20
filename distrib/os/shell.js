@@ -335,6 +335,13 @@ var TSOS;
                 value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
                 if (regex.test(value.replaceAll("\\n", " "))) {
                     _StdOut.putText("The user program is valid.");
+                    let program = value.split(" ");
+                    for (let i = 0; i < program.length; i++) {
+                        _MMU.writeImmediate(i, parseInt(program[i], 16));
+                    }
+                    for (let i = 0; i < program.length; i++) {
+                        console.log(_MMU.memory.memory);
+                    }
                 }
                 else {
                     _StdOut.putText("The user program is invalid.");

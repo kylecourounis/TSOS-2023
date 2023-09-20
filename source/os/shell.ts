@@ -421,6 +421,14 @@ module TSOS {
                     
                 if (regex.test(value.replaceAll("\\n", " "))) {
                     _StdOut.putText("The user program is valid.");
+
+                    let program = value.split(" ");
+
+                    if (program.length < 256) {
+                        for (let i = 0; i < program.length; i++) {
+                            _MMU.writeImmediate(i, parseInt(program[i], 16));
+                        }
+                    }
                 } else {
                     _StdOut.putText("The user program is invalid.");
                 }

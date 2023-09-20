@@ -93,7 +93,7 @@ module TSOS {
         public writeImmediate(address: number, value: number) {
             this.memory.setMAR(address);
             this.memory.setMDR(value);
-
+            
             this.memory.write();
         }
 
