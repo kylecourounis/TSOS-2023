@@ -101,7 +101,7 @@ module TSOS {
             // status
             sc = new ShellCommand(this.shellStatus,
                                   "status",
-                                  "- Sets the value of the status element on the VM.");
+                                  "<value> - Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
 
             // load
@@ -110,6 +110,12 @@ module TSOS {
                                  "- Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
             
+            // load
+            sc = new ShellCommand(this.shellRun,
+                                  "run",
+                                  "<pid> - Executes the program with the specified process id.");
+            this.commandList[this.commandList.length] = sc;
+
             // bsod
             sc = new ShellCommand(this.shellBSOD,
                                   "bsod",
@@ -328,6 +334,10 @@ module TSOS {
                         _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
 
+                    case "run":
+                        _StdOut.putText("Runs the program with the specified process id.");
+                        break;
+    
                     case "bsod":
                         _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
@@ -433,6 +443,10 @@ module TSOS {
                     _StdOut.putText("The user program is invalid.");
                 }
             }
+        }
+
+        public shellRun(args: string[]) {
+            // TODO
         }
 
         public shellStatus(args: string[]) {
