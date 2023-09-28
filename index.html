@@ -21,6 +21,7 @@
    <script type="text/javascript" src="distrib/host/memoryAccessor.js"></script>
 
    <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
+   <script type="text/javascript" src="distrib/os/memoryManager.js"></script>
    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
    <script type="text/javascript" src="distrib/os/canvastext.js"></script>
    <script type="text/javascript" src="distrib/os/console.js"></script>
@@ -108,6 +109,27 @@
          ></textarea>
       </label>
    </div>
+
+   CPU:
+   <table id="cpu">
+      <tr>
+         <th>PC</th>
+         <th>IR</th>
+         <th>Acc</th>
+         <th>X</th>
+         <th>Y</th>
+         <th>Z</th>
+      </tr>
+   </table>
+
+   Processes:
+   <table id="processes">
+
+   </table>
+
+   Memory:
+   <table id="memory">
+   </table>
 </div>
 
 <p class="footerText" style="clear:both;">

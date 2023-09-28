@@ -438,6 +438,12 @@ module TSOS {
                         for (let i = 0; i < program.length; i++) {
                             _MMU.writeImmediate(i, parseInt(program[i], 16));
                         }
+
+                        let pcb = new PCB();
+
+                        _PCBQueue.enqueue(pcb);
+            
+                        _StdOut.putText(`Created process with PID ${pcb.pid}`);
                     }
                 } else {
                     _StdOut.putText("The user program is invalid.");

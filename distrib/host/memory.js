@@ -13,13 +13,14 @@ Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 
 var TSOS;
 (function (TSOS) {
     class Memory {
+        static SIZE = 0x300;
         memory;
         mar = 0x0000;
         mdr = 0x00;
         constructor() {
         }
         init() {
-            this.memory = new Uint8Array(0xFFFF);
+            this.memory = new Uint8Array(Memory.SIZE);
             for (let i = 0x0; i < this.memory.length; i++) {
                 this.memory[i] = 0x00;
             }
@@ -62,6 +63,15 @@ var TSOS;
          */
         write() {
             this.memory[this.mar] = this.mdr;
+        }
+        initMemoryView() {
+            let memoryTable = document.getElementById("memory");
+            // Since you wanted rows of 8 spaces in memory
+            for (let i = 0; i < this.memory.length / 8; i++) {
+                memoryTable.insertRow();
+            }
+        }
+        updateMemoryView() {
         }
     }
     TSOS.Memory = Memory;

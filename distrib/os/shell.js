@@ -59,10 +59,13 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellRandomQuote, "quote", "- Tells the user a random quote.");
             this.commandList[this.commandList.length] = sc;
             // status
-            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- Sets the value of the status element on the VM.");
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "<value> - Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
             // load
             sc = new TSOS.ShellCommand(this.shellLoad, "load", "- Validates the user code from the textarea.");
+            this.commandList[this.commandList.length] = sc;
+            // load
+            sc = new TSOS.ShellCommand(this.shellRun, "run", "<pid> - Executes the program with the specified process id.");
             this.commandList[this.commandList.length] = sc;
             // bsod
             sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "- Triggers the trap error function.");
@@ -252,6 +255,9 @@ var TSOS;
                     case "load":
                         _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
+                    case "run":
+                        _StdOut.putText("Runs the program with the specified process id.");
+                        break;
                     case "bsod":
                         _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
@@ -336,17 +342,22 @@ var TSOS;
                 if (regex.test(value.replaceAll("\\n", " "))) {
                     _StdOut.putText("The user program is valid.");
                     let program = value.split(" ");
-                    for (let i = 0; i < program.length; i++) {
-                        _MMU.writeImmediate(i, parseInt(program[i], 16));
-                    }
-                    for (let i = 0; i < program.length; i++) {
-                        console.log(_MMU.memory.memory);
+                    if (program.length < 256) {
+                        for (let i = 0; i < program.length; i++) {
+                            _MMU.writeImmediate(i, parseInt(program[i], 16));
+                        }
+                        let pcb = new TSOS.PCB();
+                        _PCBQueue.enqueue(pcb);
+                        _StdOut.putText(`Created process with PID ${pcb.pid}`);
                     }
                 }
                 else {
                     _StdOut.putText("The user program is invalid.");
                 }
             }
+        }
+        shellRun(args) {
+            // TODO
         }
         shellStatus(args) {
             if (args.length > 0) {

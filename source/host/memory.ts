@@ -14,6 +14,8 @@ Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 
 module TSOS {
 
     export class Memory {
+        private static SIZE: number = 0x300;
+
         private memory: Uint8Array;
 
         private mar: number = 0x0000;
@@ -24,7 +26,7 @@ module TSOS {
         }
 
         public init(): void {
-            this.memory = new Uint8Array(0x300);
+            this.memory = new Uint8Array(Memory.SIZE);
 
             for (let i = 0x0; i < this.memory.length; i++) {
                 this.memory[i] = 0x00;
@@ -75,6 +77,21 @@ module TSOS {
          */
         public write() {
             this.memory[this.mar] = this.mdr;
+        }
+
+        public initMemoryView(): void {
+            let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
+
+            // Since you wanted rows of 8 spaces in memory
+            for (let i = 0; i < this.memory.length / 8; i++) {
+                memoryTable.insertRow();
+
+                
+            }
+        }
+
+        public updateMemoryView(): void {
+
         }
     }
 }
