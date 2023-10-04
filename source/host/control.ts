@@ -150,11 +150,23 @@ module TSOS {
             for (let i = 0; i < _Memory.memory.length; i++) {
                 let row: HTMLTableRowElement = memoryTable.rows[i];
 
-                for (let j = 0; j < 8; j++) {
-                    let element = document.getElementById(`mem${i * 8 + j}`);
-                    element.innerHTML = Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                for (let j = 1; j <= 8; j++) {
+                    let element = document.getElementById(`mem${i * 8 + j - 1}`);
+
+                    if (element != null) {
+                        element.innerHTML = Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                    }
                 }
             }
+        }
+
+        public static updateCPUView(): void {
+            document.getElementById("cpu-PC").innerHTML = Utils.toHex(_CPU.PC, 2);
+            document.getElementById("cpu-IR").innerHTML = Utils.toHex(_CPU.IR, 2);
+            document.getElementById("cpu-Acc").innerHTML = Utils.toHex(_CPU.Acc, 2);
+            document.getElementById("cpu-X").innerHTML = Utils.toHex(_CPU.Xreg, 2);
+            document.getElementById("cpu-Y").innerHTML = Utils.toHex(_CPU.Yreg, 2);
+            document.getElementById("cpu-Z").innerHTML = Utils.toHex(_CPU.Zflag, 2);
         }
     }
 }

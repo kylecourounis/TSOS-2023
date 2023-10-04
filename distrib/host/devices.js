@@ -29,6 +29,7 @@ var TSOS;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
             TSOS.Control.updateMemoryView();
+            TSOS.Control.updateCPUView();
         }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)

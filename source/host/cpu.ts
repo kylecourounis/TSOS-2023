@@ -50,7 +50,7 @@ module TSOS {
          * The fetch cycle.
          */
         public fetch() {
-            if (this.PC > 1) {
+            if (this.PC > 0) {
                 this.PC++;
             }
     
@@ -65,13 +65,13 @@ module TSOS {
         public decode(numOperands: number) {
             if (numOperands === 1) {
                 this.PC++;
-        
+    
                 _MMU.setLowOrderByte(this.PC);
         
                 _MMU.decodedByte1 = _MMU.read();
             } else if (numOperands === 2) {
-                this.PC++;
-            
+                this.PC += 2;
+
                 if (_MMU.decodedByte1 == null) {
                     _MMU.readImmediate(this.PC);
                     _MMU.decodedByte1 = _MMU.getMDR();
@@ -144,7 +144,7 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    this.Zflag = 10;
+                    this.isExecuting = false;
                     break;
                 }
         
@@ -187,8 +187,7 @@ module TSOS {
                 }
                 
                 default: {
-                    // Set exit flag
-                    this.Zflag = 10;
+                    this.isExecuting = false;
                 }
             }
         }
@@ -197,6 +196,9 @@ module TSOS {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
+            
+            console.log(`IR: ${Utils.toHex(this.IR, 2)}, Acc: ${Utils.toHex(this.Acc, 2)}, xReg: ${Utils.toHex(this.Xreg, 2)}, yReg: ${Utils.toHex(this.Yreg, 2)}`);
+
             this.fetch();
 
             let decodeCycles = DecodeCycles.get(this.IR);

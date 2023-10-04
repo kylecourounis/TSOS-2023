@@ -112,6 +112,14 @@ module TSOS {
             TSOS.Control.updateMemoryView();
         }
 
+        public krnRunProcess(pid) {
+            let pcb = <PCB>_PCBQueue.dequeue();
+    
+            pcb.state = State.RUNNING;
+
+            _CPU.isExecuting = true;
+        }
+
         //
         // Interrupt Handling
         //

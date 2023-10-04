@@ -445,11 +445,7 @@ module TSOS {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
 
-                let pcb = <PCB>_PCBQueue.dequeue();
-    
-                pcb.state = State.RUNNING;
-    
-                _CPU.isExecuting = true;
+                _Kernel.krnRunProcess(pid);
             } else {
                 _StdOut.putText("Error: please specify a PID");
             }

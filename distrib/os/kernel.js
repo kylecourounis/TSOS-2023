@@ -92,6 +92,11 @@ var TSOS;
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
             TSOS.Control.updateMemoryView();
         }
+        krnRunProcess(pid) {
+            let pcb = _PCBQueue.dequeue();
+            pcb.state = TSOS.State.RUNNING;
+            _CPU.isExecuting = true;
+        }
         //
         // Interrupt Handling
         //

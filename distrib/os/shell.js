@@ -353,9 +353,7 @@ var TSOS;
         shellRun(args) {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
-                let pcb = _PCBQueue.dequeue();
-                pcb.state = TSOS.State.RUNNING;
-                _CPU.isExecuting = true;
+                _Kernel.krnRunProcess(pid);
             }
             else {
                 _StdOut.putText("Error: please specify a PID");

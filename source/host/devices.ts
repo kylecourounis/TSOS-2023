@@ -33,6 +33,7 @@ module TSOS {
             _Kernel.krnOnCPUClockPulse();
 
             TSOS.Control.updateMemoryView();
+            TSOS.Control.updateCPUView();
         }
 
         //

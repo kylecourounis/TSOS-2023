@@ -50,7 +50,7 @@ h3 {
 .table-container {
   width: 380px;
   height: 200px;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .os-table {
@@ -58,7 +58,8 @@ h3 {
   border-collapse: collapse;
 }
 
-.os-table td {
+.os-table th, td {
   border: 1px solid black;
   background-color: white;
+  padding: 10px;
 }

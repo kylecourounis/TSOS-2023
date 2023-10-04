@@ -119,11 +119,21 @@ var TSOS;
             let memoryTable = document.getElementById("memory");
             for (let i = 0; i < _Memory.memory.length; i++) {
                 let row = memoryTable.rows[i];
-                for (let j = 0; j < 8; j++) {
-                    let element = document.getElementById(`mem${i * 8 + j}`);
-                    element.innerHTML = TSOS.Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                for (let j = 1; j <= 8; j++) {
+                    let element = document.getElementById(`mem${i * 8 + j - 1}`);
+                    if (element != null) {
+                        element.innerHTML = TSOS.Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                    }
                 }
             }
+        }
+        static updateCPUView() {
+            document.getElementById("cpu-PC").innerHTML = TSOS.Utils.toHex(_CPU.PC, 2);
+            document.getElementById("cpu-IR").innerHTML = TSOS.Utils.toHex(_CPU.IR, 2);
+            document.getElementById("cpu-Acc").innerHTML = TSOS.Utils.toHex(_CPU.Acc, 2);
+            document.getElementById("cpu-X").innerHTML = TSOS.Utils.toHex(_CPU.Xreg, 2);
+            document.getElementById("cpu-Y").innerHTML = TSOS.Utils.toHex(_CPU.Yreg, 2);
+            document.getElementById("cpu-Z").innerHTML = TSOS.Utils.toHex(_CPU.Zflag, 2);
         }
     }
     TSOS.Control = Control;
