@@ -122,7 +122,7 @@ var TSOS;
                 for (let j = 1; j <= 8; j++) {
                     let element = document.getElementById(`mem${i * 8 + j - 1}`);
                     if (element != null) {
-                        element.innerHTML = TSOS.Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                        element.innerHTML = TSOS.Utils.toHex(_Memory.memory[i * 8 + j - 1], 2);
                     }
                 }
             }
@@ -134,6 +134,60 @@ var TSOS;
             document.getElementById("cpu-X").innerHTML = TSOS.Utils.toHex(_CPU.Xreg, 2);
             document.getElementById("cpu-Y").innerHTML = TSOS.Utils.toHex(_CPU.Yreg, 2);
             document.getElementById("cpu-Z").innerHTML = TSOS.Utils.toHex(_CPU.Zflag, 2);
+        }
+        static createProcessRow(pcb) {
+            // Create the row for the pcb info to be placed in
+            let newRow = document.createElement('tr');
+            newRow.id = `pid${pcb.pid}`;
+            // Create the pid element
+            let pidElem = document.createElement('td');
+            pidElem.innerHTML = pcb.pid.toString();
+            newRow.appendChild(pidElem);
+            // Create the State element
+            let stateElem = document.createElement('td');
+            stateElem.innerHTML = pcb.state.toString();
+            newRow.appendChild(stateElem);
+            // Create the PC element
+            let pcElem = document.createElement('td');
+            pcElem.innerHTML = TSOS.Utils.toHex(pcb.programCounter, 2);
+            newRow.appendChild(pcElem);
+            // Create the IR element
+            let irElem = document.createElement('td');
+            irElem.innerHTML = TSOS.Utils.toHex(pcb.instructionRegister, 2);
+            newRow.appendChild(irElem);
+            // Create the Acc element
+            let accElem = document.createElement('td');
+            accElem.innerHTML = TSOS.Utils.toHex(pcb.acc, 2);
+            newRow.appendChild(accElem);
+            // Create the X Reg element
+            let xRegElem = document.createElement('td');
+            xRegElem.innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
+            newRow.appendChild(xRegElem);
+            // Create the Y Reg element
+            let yRegElem = document.createElement('td');
+            yRegElem.innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
+            newRow.appendChild(yRegElem);
+            // Create the Z flag element
+            let zFlagElem = document.createElement('td');
+            zFlagElem.innerHTML = pcb.zFlag.toString();
+            newRow.appendChild(zFlagElem);
+            // Add the row to the table
+            let pcbTable = document.querySelector('#processes');
+            pcbTable.appendChild(newRow);
+        }
+        // Function to update the table entry for the PCB
+        updatePCBRow(pcb) {
+            // Get the table row
+            let row = document.getElementById(`pid${pcb.pid}`);
+            // Update state
+            row.cells[1].innerHTML = pcb.state;
+            // Update each of the CPU fields
+            row.cells[2].innerHTML = TSOS.Utils.toHex(pcb.programCounter, 2);
+            row.cells[3].innerHTML = TSOS.Utils.toHex(pcb.instructionRegister, 2);
+            row.cells[4].innerHTML = TSOS.Utils.toHex(pcb.acc, 2);
+            row.cells[5].innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
+            row.cells[6].innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
+            row.cells[7].innerHTML = pcb.zFlag.toString();
         }
     }
     TSOS.Control = Control;

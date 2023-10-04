@@ -32,16 +32,16 @@ module TSOS {
             this.yReg = 0;
             this.zFlag = 0;
 
-            this.state = State.RESIDENT;
+            this.state = State.NEW;
         }
     }
 
     export enum State {
-        RESIDENT,
-        NEW,
-        RUNNING,
-        WAITING,
-        READY,
-        TERMINATED
+        RESIDENT = 'Resident',
+        NEW = 'New',
+        RUNNING = 'Running',
+        WAITING = 'Waiting',
+        READY = 'Ready',
+        TERMINATED = 'Terminated'
     }
 }

@@ -444,8 +444,13 @@ module TSOS {
         public shellRun(args: string[]) {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
+                let pcb = <PCB>_PCBList[pid];
 
-                _Kernel.krnRunProcess(pid);
+                if (pcb) {
+                    _Kernel.krnRunProcess(pcb);
+                } else {
+                    _StdOut.putText("Error: Unknown PID");
+                }
             } else {
                 _StdOut.putText("Error: please specify a PID");
             }

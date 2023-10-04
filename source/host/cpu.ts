@@ -70,19 +70,21 @@ module TSOS {
         
                 _MMU.decodedByte1 = _MMU.read();
             } else if (numOperands === 2) {
-                this.PC += 2;
+                this.PC++;
 
-                if (_MMU.decodedByte1 == null) {
-                    _MMU.readImmediate(this.PC);
-                    _MMU.decodedByte1 = _MMU.getMDR();
-        
-                    _MMU.setLowOrderByte(_MMU.decodedByte1);
-                } else {
-                    _MMU.readImmediate(this.PC);
-                    _MMU.decodedByte2 = _MMU.getMDR();
-        
-                    _MMU.setHighOrderByte(_MMU.decodedByte2);
-                }
+                _MMU.readImmediate(this.PC);
+                _MMU.decodedByte1 = _MMU.getMDR();
+    
+                _MMU.setLowOrderByte(_MMU.decodedByte1);
+
+                // -------
+
+                this.PC++;
+
+                _MMU.readImmediate(this.PC);
+                _MMU.decodedByte2 = _MMU.getMDR();
+    
+                _MMU.setHighOrderByte(_MMU.decodedByte2);
             }
     
             _MMU.read();
@@ -144,7 +146,12 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
+                    this.init();
+
+                    TSOS.Control.updateCPUView();
+                    
                     this.isExecuting = false;
+
                     break;
                 }
         

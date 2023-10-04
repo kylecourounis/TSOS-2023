@@ -88,14 +88,17 @@ var TSOS;
                 _MMU.writeImmediate(i, parseInt(program[i], 16));
             }
             let pcb = new TSOS.PCB();
+            _PCBList.push(pcb);
             _PCBQueue.enqueue(pcb);
+            TSOS.Control.createProcessRow(pcb);
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
             TSOS.Control.updateMemoryView();
         }
-        krnRunProcess(pid) {
-            let pcb = _PCBQueue.dequeue();
-            pcb.state = TSOS.State.RUNNING;
-            _CPU.isExecuting = true;
+        krnRunProcess(pcb) {
+            if (pcb.state === TSOS.State.NEW) {
+                pcb.state = TSOS.State.RUNNING;
+                _CPU.isExecuting = true;
+            }
         }
         //
         // Interrupt Handling

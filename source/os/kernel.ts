@@ -105,19 +105,22 @@ module TSOS {
             
             let pcb = new PCB();
 
+            _PCBList.push(pcb);
             _PCBQueue.enqueue(pcb);
+
+            TSOS.Control.createProcessRow(pcb);
 
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
 
             TSOS.Control.updateMemoryView();
         }
 
-        public krnRunProcess(pid) {
-            let pcb = <PCB>_PCBQueue.dequeue();
-    
-            pcb.state = State.RUNNING;
+        public krnRunProcess(pcb: PCB) {
+            if (pcb.state === State.NEW) {
+                pcb.state = State.RUNNING;
 
-            _CPU.isExecuting = true;
+                _CPU.isExecuting = true;
+            }
         }
 
         //

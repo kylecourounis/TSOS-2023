@@ -22,18 +22,18 @@ var TSOS;
             this.xReg = 0;
             this.yReg = 0;
             this.zFlag = 0;
-            this.state = State.RESIDENT;
+            this.state = State.NEW;
         }
     }
     TSOS.PCB = PCB;
     let State;
     (function (State) {
-        State[State["RESIDENT"] = 0] = "RESIDENT";
-        State[State["NEW"] = 1] = "NEW";
-        State[State["RUNNING"] = 2] = "RUNNING";
-        State[State["WAITING"] = 3] = "WAITING";
-        State[State["READY"] = 4] = "READY";
-        State[State["TERMINATED"] = 5] = "TERMINATED";
+        State["RESIDENT"] = "Resident";
+        State["NEW"] = "New";
+        State["RUNNING"] = "Running";
+        State["WAITING"] = "Waiting";
+        State["READY"] = "Ready";
+        State["TERMINATED"] = "Terminated";
     })(State = TSOS.State || (TSOS.State = {}));
 })(TSOS || (TSOS = {}));
 //# sourceMappingURL=pcb.js.map

@@ -353,7 +353,13 @@ var TSOS;
         shellRun(args) {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
-                _Kernel.krnRunProcess(pid);
+                let pcb = _PCBList[pid];
+                if (pcb) {
+                    _Kernel.krnRunProcess(pcb);
+                }
+                else {
+                    _StdOut.putText("Error: Unknown PID");
+                }
             }
             else {
                 _StdOut.putText("Error: please specify a PID");
