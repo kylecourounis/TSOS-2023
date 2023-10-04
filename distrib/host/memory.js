@@ -26,6 +26,13 @@ var TSOS;
             }
         }
         /**
+         * Gets the length of the memory array.
+         * @returns The length of the memory array.
+         */
+        getLength() {
+            return this.memory.length;
+        }
+        /**
          * Gets the memory address register.
          * @returns the memory address register.
          */
@@ -64,14 +71,13 @@ var TSOS;
         write() {
             this.memory[this.mar] = this.mdr;
         }
-        initMemoryView() {
-            let memoryTable = document.getElementById("memory");
-            // Since you wanted rows of 8 spaces in memory
-            for (let i = 0; i < this.memory.length / 8; i++) {
-                memoryTable.insertRow();
+        /**
+         * Clears memory with a specific length.
+         */
+        clearMemory(segmentLength) {
+            for (let i = 0x0; i < segmentLength; i++) {
+                this.memory[i] = 0x00;
             }
-        }
-        updateMemoryView() {
         }
     }
     TSOS.Memory = Memory;

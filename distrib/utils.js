@@ -42,6 +42,19 @@ var TSOS;
             }
             return retVal;
         }
+        static toHex(value, length) {
+            try {
+                let s = "0x";
+                let converted = value.toString(16).toUpperCase();
+                for (let i = 0; i < length - converted.length; i++) {
+                    s += "0";
+                }
+                return s + converted;
+            }
+            catch (e) {
+                return "ERR [hexValue Conversion]: number undefined";
+            }
+        }
     }
     TSOS.Utils = Utils;
 })(TSOS || (TSOS = {}));

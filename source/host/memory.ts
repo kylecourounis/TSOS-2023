@@ -16,7 +16,7 @@ module TSOS {
     export class Memory {
         private static SIZE: number = 0x300;
 
-        private memory: Uint8Array;
+        public memory: Uint8Array;
 
         private mar: number = 0x0000;
         private mdr: number = 0x00;
@@ -33,6 +33,13 @@ module TSOS {
             }
         }
 
+        /**
+         * Gets the length of the memory array.
+         * @returns The length of the memory array.
+         */
+        public getLength() {
+            return this.memory.length;
+        }
             
         /**
          * Gets the memory address register.
@@ -79,19 +86,13 @@ module TSOS {
             this.memory[this.mar] = this.mdr;
         }
 
-        public initMemoryView(): void {
-            let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
-
-            // Since you wanted rows of 8 spaces in memory
-            for (let i = 0; i < this.memory.length / 8; i++) {
-                memoryTable.insertRow();
-
-                
+        /**
+         * Clears memory with a specific length.
+         */
+        public clearMemory(segmentLength: number) {
+            for (let i = 0x0; i < segmentLength; i++) {
+                this.memory[i] = 0x00;
             }
-        }
-
-        public updateMemoryView(): void {
-
         }
     }
 }

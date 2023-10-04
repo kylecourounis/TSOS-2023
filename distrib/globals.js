@@ -54,6 +54,8 @@ var _hardwareClockID = null;
 var Glados = null; // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .
 var _GLaDOS = null; // If the above is linked in, this is the instantiated instance of Glados.
 var onDocumentLoad = function () {
+    TSOS.DecodeCycles.initMap();
+    TSOS.ASCII.initMap();
     TSOS.Control.hostInit();
 };
 //# sourceMappingURL=globals.js.map

@@ -28,6 +28,8 @@ module TSOS {
             _Console = new Console();             // The command line interface / console I/O device.
             _Console.init();
 
+            TSOS.Control.initMemoryView();
+
             // Initialize standard input and output to the _Console.
             _StdIn  = _Console;
             _StdOut = _Console;
@@ -91,6 +93,24 @@ module TSOS {
             }
         }
 
+        //
+        // Initialize a process
+        //
+        public krnInitProcess(program: string[]) {
+            _Memory.clearMemory(256);
+
+            for (let i = 0; i < program.length; i++) {
+                _MMU.writeImmediate(i, parseInt(program[i], 16));
+            }
+            
+            let pcb = new PCB();
+
+            _PCBQueue.enqueue(pcb);
+
+            _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
+
+            TSOS.Control.updateMemoryView();
+        }
 
         //
         // Interrupt Handling

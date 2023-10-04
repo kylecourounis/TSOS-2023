@@ -430,20 +430,10 @@ module TSOS {
                 value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
                     
                 if (regex.test(value.replaceAll("\\n", " "))) {
-                    _StdOut.putText("The user program is valid.");
-
                     let program = value.split(" ");
 
                     if (program.length < 256) {
-                        for (let i = 0; i < program.length; i++) {
-                            _MMU.writeImmediate(i, parseInt(program[i], 16));
-                        }
-
-                        let pcb = new PCB();
-
-                        _PCBQueue.enqueue(pcb);
-            
-                        _StdOut.putText(`Created process with PID ${pcb.pid}`);
+                        _Kernel.krnInitProcess(program);
                     }
                 } else {
                     _StdOut.putText("The user program is invalid.");
@@ -452,7 +442,17 @@ module TSOS {
         }
 
         public shellRun(args: string[]) {
-            // TODO
+            if (args.length > 0) {
+                let pid = parseInt(args[0]);
+
+                let pcb = <PCB>_PCBQueue.dequeue();
+    
+                pcb.state = State.RUNNING;
+    
+                _CPU.isExecuting = true;
+            } else {
+                _StdOut.putText("Error: please specify a PID");
+            }
         }
 
         public shellStatus(args: string[]) {

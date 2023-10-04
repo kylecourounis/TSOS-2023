@@ -99,6 +99,32 @@ var TSOS;
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
         }
+        static initMemoryView() {
+            let memoryTable = document.getElementById("memory");
+            // Since you wanted rows of 8 spaces in memory
+            for (let i = 0; i < _Memory.memory.length / 8; i++) {
+                memoryTable.insertRow();
+                let addrElement = document.createElement('td');
+                addrElement.innerHTML = TSOS.Utils.toHex(i * 8, 4);
+                memoryTable.rows[memoryTable.rows.length - 1].appendChild(addrElement);
+                for (let j = 0; j < 8; j++) {
+                    let element = document.createElement('td');
+                    element.id = `mem${i * 8 + j}`;
+                    element.innerHTML = TSOS.Utils.toHex(0, 2); // set all spaces to zero
+                    memoryTable.rows[memoryTable.rows.length - 1].appendChild(element);
+                }
+            }
+        }
+        static updateMemoryView() {
+            let memoryTable = document.getElementById("memory");
+            for (let i = 0; i < _Memory.memory.length; i++) {
+                let row = memoryTable.rows[i];
+                for (let j = 0; j < 8; j++) {
+                    let element = document.getElementById(`mem${i * 8 + j}`);
+                    element.innerHTML = TSOS.Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                }
+            }
+        }
     }
     TSOS.Control = Control;
 })(TSOS || (TSOS = {}));

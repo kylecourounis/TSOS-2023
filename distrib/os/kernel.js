@@ -23,6 +23,7 @@ var TSOS;
             // Initialize the console.
             _Console = new TSOS.Console(); // The command line interface / console I/O device.
             _Console.init();
+            TSOS.Control.initMemoryView();
             // Initialize standard input and output to the _Console.
             _StdIn = _Console;
             _StdOut = _Console;
@@ -77,6 +78,19 @@ var TSOS;
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
+        }
+        //
+        // Initialize a process
+        //
+        krnInitProcess(program) {
+            _Memory.clearMemory(256);
+            for (let i = 0; i < program.length; i++) {
+                _MMU.writeImmediate(i, parseInt(program[i], 16));
+            }
+            let pcb = new TSOS.PCB();
+            _PCBQueue.enqueue(pcb);
+            _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
+            TSOS.Control.updateMemoryView();
         }
         //
         // Interrupt Handling

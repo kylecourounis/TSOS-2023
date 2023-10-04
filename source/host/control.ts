@@ -122,5 +122,39 @@ module TSOS {
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
         }
+
+        public static initMemoryView(): void {
+            let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
+
+            // Since you wanted rows of 8 spaces in memory
+            for (let i = 0; i < _Memory.memory.length / 8; i++) {
+                memoryTable.insertRow();
+
+                let addrElement: HTMLTableCellElement = document.createElement('td');
+
+                addrElement.innerHTML = Utils.toHex(i * 8, 4);
+                memoryTable.rows[memoryTable.rows.length - 1].appendChild(addrElement);
+
+                for (let j = 0; j < 8; j++) {
+                    let element: HTMLTableCellElement = document.createElement('td');
+                    element.id = `mem${i * 8 + j}`;
+                    element.innerHTML = Utils.toHex(0, 2); // set all spaces to zero
+                    memoryTable.rows[memoryTable.rows.length - 1].appendChild(element);
+                }
+            }
+        }
+
+        public static updateMemoryView(): void {
+            let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
+
+            for (let i = 0; i < _Memory.memory.length; i++) {
+                let row: HTMLTableRowElement = memoryTable.rows[i];
+
+                for (let j = 0; j < 8; j++) {
+                    let element = document.getElementById(`mem${i * 8 + j}`);
+                    element.innerHTML = Utils.toHex(_Memory.memory[i * 8 + j], 2);
+                }
+            }
+        }
     }
 }

@@ -173,12 +173,10 @@ var TSOS;
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
-            this.isExecuting = true;
             this.fetch();
             let decodeCycles = TSOS.DecodeCycles.get(this.IR);
             this.decode(decodeCycles);
             this.execute();
-            this.isExecuting = false;
         }
     }
     TSOS.Cpu = Cpu;
