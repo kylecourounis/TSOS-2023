@@ -123,6 +123,14 @@ module TSOS {
             // page from its cache, which is not what we want.
         }
 
+        public static hostBtnStepMode_click(btn): void {
+            _CPU.isExecuting = false;
+        }
+
+        public static hostBtnNextStep_click(btn): void {
+            _CPU.cycle();
+        }
+
         public static initMemoryView(): void {
             let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
 

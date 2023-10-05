@@ -99,6 +99,12 @@ var TSOS;
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
         }
+        static hostBtnStepMode_click(btn) {
+            _CPU.isExecuting = false;
+        }
+        static hostBtnNextStep_click(btn) {
+            _CPU.cycle();
+        }
         static initMemoryView() {
             let memoryTable = document.getElementById("memory");
             // Since you wanted rows of 8 spaces in memory
