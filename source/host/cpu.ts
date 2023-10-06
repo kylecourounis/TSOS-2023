@@ -184,10 +184,9 @@ module TSOS {
         
                 case OpCode.SYS: {
                     if (this.Xreg === 1) {
-                        _StdOut.putText(this.Yreg.toString());
+                        _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_INT, [this.Yreg.toString()]));
                     } else if (this.Xreg === 2) {
-                        let data = ASCII.getChar(_MMU.decodedByte1);
-                        _StdOut.putText('' + data);
+                        _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_STR, [_MMU.decodedByte1]));
                     }
                     
                     break;

@@ -32,6 +32,7 @@
    <script type="text/javascript" src="distrib/os/shell.js"></script>
    <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
    <script type="text/javascript" src="distrib/os/userCommand.js"></script>
+   <script type="text/javascript" src="distrib/os/systemCalls.js"></script>
    <script type="text/javascript" src="distrib/os/kernel.js"></script>
 
    <!-- Other Routines -->
@@ -74,11 +75,12 @@
 
 
       <input type="button"
+               style="width: 120px;"
                id = "btnStepMode"
                name="brnStepMode"
                class="normal_button"
                disabled="disabled"
-               value="Step Mode"
+               value="Step Mode: OFF"
                tabindex="3"
                onclick="TSOS.Control.hostBtnStepMode_click(this);">
 

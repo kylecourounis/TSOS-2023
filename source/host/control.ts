@@ -130,12 +130,14 @@ module TSOS {
                 Control.stepMode = true;
 
                 (<HTMLButtonElement>document.getElementById("btnNextStep")).disabled = false;
+                (<HTMLButtonElement>document.getElementById("btnStepMode")).value = "Step Mode: ON";
     
                 _CPU.isExecuting = false;
             } else {
                 Control.stepMode = false;
 
                 (<HTMLButtonElement>document.getElementById("btnNextStep")).disabled = true;
+                (<HTMLButtonElement>document.getElementById("btnStepMode")).value = "Step Mode: OFF";
             }
         }
 

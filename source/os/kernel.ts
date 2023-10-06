@@ -118,7 +118,7 @@ module TSOS {
         public krnRunProcess(pcb: PCB) {
             if (pcb.state === State.NEW) {
                 pcb.state = State.RUNNING;
-                
+
                 _CPU.isExecuting = true;
             }
         }
@@ -154,6 +154,12 @@ module TSOS {
                 case KEYBOARD_IRQ:
                     _krnKeyboardDriver.isr(params);   // Kernel mode device driver
                     _StdIn.handleInput();
+                    break;
+                case SYS_PRINT_INT:
+                    SystemCalls.printInt(params);
+                    break;
+                case SYS_PRINT_STR:
+                    SystemCalls.printString(params);
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

@@ -105,11 +105,13 @@ var TSOS;
             if (!Control.stepMode) {
                 Control.stepMode = true;
                 document.getElementById("btnNextStep").disabled = false;
+                document.getElementById("btnStepMode").value = "Step Mode: ON";
                 _CPU.isExecuting = false;
             }
             else {
                 Control.stepMode = false;
                 document.getElementById("btnNextStep").disabled = true;
+                document.getElementById("btnStepMode").value = "Step Mode: OFF";
             }
         }
         static hostBtnNextStep_click(btn) {
