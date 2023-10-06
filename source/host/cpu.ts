@@ -71,13 +71,13 @@ module TSOS {
                 _MMU.decodedByte1 = _MMU.read();
             } else if (numOperands === 2) {
                 this.PC++;
-
+ 
                 _MMU.readImmediate(this.PC);
                 _MMU.decodedByte1 = _MMU.getMDR();
     
                 _MMU.setLowOrderByte(_MMU.decodedByte1);
 
-                // -------
+                // ------------------
 
                 this.PC++;
 
@@ -156,21 +156,21 @@ module TSOS {
                 }
         
                 case OpCode.CPX: {
-                    if (this.Xreg == _MMU.getMDR()) {
+                    if (this.Xreg === _MMU.getMDR()) {
                         this.Zflag = 0x01;
                     } else {
                         this.Zflag = 0x00;
                     }
-        
+                    
                     break;
                 }
         
                 case OpCode.BNE: {
-                    if (this.Zflag == 0x01) {
+                    if (this.Zflag == 0x00) {
                         let offset = this.getOffset(_MMU.getMDR());
                         this.PC -= offset;
                     }
-        
+                    
                     break;
                 }
         
@@ -178,7 +178,7 @@ module TSOS {
                     this.Acc = _MMU.getMDR();
                     this.Acc += 1;
                     _MMU.write(this.Acc);
-        
+                    
                     break;
                 }
         
@@ -189,12 +189,12 @@ module TSOS {
                         let data = ASCII.getChar(_MMU.decodedByte1);
                         _StdOut.putText('' + data);
                     }
-        
+                    
                     break;
                 }
                 
                 default: {
-                    this.isExecuting = false;
+                    this.isExecuting = false; // Crash the program
                 }
             }
         }

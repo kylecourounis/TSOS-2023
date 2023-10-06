@@ -72,7 +72,7 @@ var TSOS;
                 _MMU.readImmediate(this.PC);
                 _MMU.decodedByte1 = _MMU.getMDR();
                 _MMU.setLowOrderByte(_MMU.decodedByte1);
-                // -------
+                // ------------------
                 this.PC++;
                 _MMU.readImmediate(this.PC);
                 _MMU.decodedByte2 = _MMU.getMDR();
@@ -132,7 +132,7 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.CPX: {
-                    if (this.Xreg == _MMU.getMDR()) {
+                    if (this.Xreg === _MMU.getMDR()) {
                         this.Zflag = 0x01;
                     }
                     else {
@@ -141,7 +141,7 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BNE: {
-                    if (this.Zflag == 0x01) {
+                    if (this.Zflag == 0x00) {
                         let offset = this.getOffset(_MMU.getMDR());
                         this.PC -= offset;
                     }
@@ -164,7 +164,7 @@ var TSOS;
                     break;
                 }
                 default: {
-                    this.isExecuting = false;
+                    this.isExecuting = false; // Crash the program
                 }
             }
         }

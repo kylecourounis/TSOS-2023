@@ -20,6 +20,7 @@
 var TSOS;
 (function (TSOS) {
     class Control {
+        static stepMode = false;
         static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             setInterval(() => {
@@ -66,9 +67,10 @@ var TSOS;
         static hostBtnStartOS_click(btn) {
             // Disable the (passed-in) start button...
             btn.disabled = true;
-            // .. enable the Halt and Reset buttons ...
+            // .. enable the Halt, Reset, and step control buttons ...
             document.getElementById("btnHaltOS").disabled = false;
             document.getElementById("btnReset").disabled = false;
+            document.getElementById("btnStepMode").disabled = false;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
@@ -100,10 +102,20 @@ var TSOS;
             // page from its cache, which is not what we want.
         }
         static hostBtnStepMode_click(btn) {
-            _CPU.isExecuting = false;
+            if (!Control.stepMode) {
+                Control.stepMode = true;
+                document.getElementById("btnNextStep").disabled = false;
+                _CPU.isExecuting = false;
+            }
+            else {
+                Control.stepMode = false;
+                document.getElementById("btnNextStep").disabled = true;
+            }
         }
         static hostBtnNextStep_click(btn) {
-            _CPU.cycle();
+            if (Control.stepMode) {
+                _CPU.cycle();
+            }
         }
         static initMemoryView() {
             let memoryTable = document.getElementById("memory");
@@ -143,43 +155,43 @@ var TSOS;
         }
         static createProcessRow(pcb) {
             // Create the row for the pcb info to be placed in
-            let newRow = document.createElement('tr');
-            newRow.id = `pid${pcb.pid}`;
-            // Create the pid element
+            let row = document.createElement('tr');
+            row.id = `pid${pcb.pid}`;
+            // Create PID element
             let pidElem = document.createElement('td');
             pidElem.innerHTML = pcb.pid.toString();
-            newRow.appendChild(pidElem);
-            // Create the State element
+            row.appendChild(pidElem);
+            // Create State element
             let stateElem = document.createElement('td');
             stateElem.innerHTML = pcb.state.toString();
-            newRow.appendChild(stateElem);
-            // Create the PC element
+            row.appendChild(stateElem);
+            // Create PC element
             let pcElem = document.createElement('td');
             pcElem.innerHTML = TSOS.Utils.toHex(pcb.programCounter, 2);
-            newRow.appendChild(pcElem);
-            // Create the IR element
+            row.appendChild(pcElem);
+            // Create IR element
             let irElem = document.createElement('td');
             irElem.innerHTML = TSOS.Utils.toHex(pcb.instructionRegister, 2);
-            newRow.appendChild(irElem);
-            // Create the Acc element
+            row.appendChild(irElem);
+            // Create Acc element
             let accElem = document.createElement('td');
             accElem.innerHTML = TSOS.Utils.toHex(pcb.acc, 2);
-            newRow.appendChild(accElem);
-            // Create the X Reg element
+            row.appendChild(accElem);
+            // Create X Reg element
             let xRegElem = document.createElement('td');
             xRegElem.innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
-            newRow.appendChild(xRegElem);
-            // Create the Y Reg element
+            row.appendChild(xRegElem);
+            // Create Y Reg element
             let yRegElem = document.createElement('td');
             yRegElem.innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
-            newRow.appendChild(yRegElem);
-            // Create the Z flag element
+            row.appendChild(yRegElem);
+            // Create Z flag element
             let zFlagElem = document.createElement('td');
             zFlagElem.innerHTML = pcb.zFlag.toString();
-            newRow.appendChild(zFlagElem);
-            // Add the row to the table
-            let pcbTable = document.querySelector('#processes');
-            pcbTable.appendChild(newRow);
+            row.appendChild(zFlagElem);
+            // Append to table
+            let processes = document.querySelector('#processes');
+            processes.appendChild(row);
         }
         // Function to update the table entry for the PCB
         updatePCBRow(pcb) {

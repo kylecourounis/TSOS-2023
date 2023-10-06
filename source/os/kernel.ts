@@ -118,7 +118,7 @@ module TSOS {
         public krnRunProcess(pcb: PCB) {
             if (pcb.state === State.NEW) {
                 pcb.state = State.RUNNING;
-
+                
                 _CPU.isExecuting = true;
             }
         }
