@@ -68,15 +68,14 @@ var TSOS;
                 _MMU.decodedByte1 = _MMU.read();
             }
             else if (numOperands === 2) {
-                this.PC++;
-                _MMU.readImmediate(this.PC);
+                _MMU.readImmediate(this.PC + 1);
                 _MMU.decodedByte1 = _MMU.getMDR();
                 _MMU.setLowOrderByte(_MMU.decodedByte1);
                 // ------------------
-                this.PC++;
-                _MMU.readImmediate(this.PC);
+                _MMU.readImmediate(this.PC + 2);
                 _MMU.decodedByte2 = _MMU.getMDR();
                 _MMU.setHighOrderByte(_MMU.decodedByte2);
+                this.PC += 2;
             }
             _MMU.read();
         }
@@ -115,10 +114,6 @@ var TSOS;
                 }
                 case TSOS.OpCode.LDY_M: {
                     this.Yreg = _MMU.getMDR();
-                    break;
-                }
-                case TSOS.OpCode.TAY: {
-                    this.Yreg = this.Acc;
                     break;
                 }
                 case TSOS.OpCode.NOP: {

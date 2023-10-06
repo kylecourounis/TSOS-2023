@@ -24,6 +24,14 @@ var TSOS;
             this.zFlag = 0;
             this.state = State.NEW;
         }
+        updateFromCPU(pc, ir, acc, xReg, yReg, zFlag) {
+            this.programCounter = pc;
+            this.instructionRegister = ir;
+            this.acc = acc;
+            this.xReg = xReg;
+            this.yReg = yReg;
+            this.zFlag = zFlag;
+        }
     }
     TSOS.PCB = PCB;
     let State;

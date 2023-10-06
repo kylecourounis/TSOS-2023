@@ -112,7 +112,7 @@ module TSOS {
         public setHighOrderByte(hob: number) {
             let lob = MemoryAccessor.flipEndianess(this.decodedByte1);
             let val = MemoryAccessor.flipEndianess(lob | hob);
-
+            
             this.memory.setMAR(val);
         }
 

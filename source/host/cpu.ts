@@ -45,7 +45,6 @@ module TSOS {
             return 0xFF - hex + 1;
         }
 
-
         /**
          * The fetch cycle.
          */
@@ -65,26 +64,24 @@ module TSOS {
         public decode(numOperands: number) {
             if (numOperands === 1) {
                 this.PC++;
-    
+
                 _MMU.setLowOrderByte(this.PC);
         
                 _MMU.decodedByte1 = _MMU.read();
             } else if (numOperands === 2) {
-                this.PC++;
- 
-                _MMU.readImmediate(this.PC);
+                _MMU.readImmediate(this.PC + 1);
                 _MMU.decodedByte1 = _MMU.getMDR();
     
                 _MMU.setLowOrderByte(_MMU.decodedByte1);
 
                 // ------------------
 
-                this.PC++;
-
-                _MMU.readImmediate(this.PC);
+                _MMU.readImmediate(this.PC + 2);
                 _MMU.decodedByte2 = _MMU.getMDR();
     
                 _MMU.setHighOrderByte(_MMU.decodedByte2);
+
+                this.PC += 2;
             }
     
             _MMU.read();
@@ -132,11 +129,6 @@ module TSOS {
         
                 case OpCode.LDY_M: {
                     this.Yreg = _MMU.getMDR();
-                    break;
-                }
-        
-                case OpCode.TAY: {
-                    this.Yreg = this.Acc;
                     break;
                 }
         

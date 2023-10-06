@@ -243,9 +243,8 @@ module TSOS {
             processes.appendChild(row);
         }
 
-
         // Function to update the table entry for the PCB
-        public updatePCBRow(pcb: PCB): void {
+        public static updatePCBRow(pcb: PCB): void {
             // Get the table row
             let row: HTMLTableRowElement = <HTMLTableRowElement>document.getElementById(`pid${pcb.pid}`);
 
@@ -258,8 +257,7 @@ module TSOS {
             row.cells[4].innerHTML = Utils.toHex(pcb.acc, 2);
             row.cells[5].innerHTML = Utils.toHex(pcb.xReg, 2);
             row.cells[6].innerHTML = Utils.toHex(pcb.yReg, 2);
-            row.cells[7].innerHTML = pcb.zFlag.toString();
+            row.cells[7].innerHTML = Utils.toHex(pcb.zFlag, 2);
         }
-        
     }
 }

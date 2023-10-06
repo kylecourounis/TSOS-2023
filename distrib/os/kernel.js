@@ -9,6 +9,7 @@
 var TSOS;
 (function (TSOS) {
     class Kernel {
+        currentRunningProcess;
         //
         // OS Startup and Shutdown Routines
         //
@@ -74,20 +75,24 @@ var TSOS;
             }
             else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 _CPU.cycle();
+                _Kernel.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+                TSOS.Control.updatePCBRow(_Kernel.currentRunningProcess);
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
+                this.currentRunningProcess.state = TSOS.State.TERMINATED;
             }
         }
         //
         // Initialize a process
         //
         krnInitProcess(program) {
-            _Memory.clearMemory(256);
+            _Memory.clearMemory(0x00, 256);
             for (let i = 0; i < program.length; i++) {
                 _MMU.writeImmediate(i, parseInt(program[i], 16));
             }
             let pcb = new TSOS.PCB();
+            pcb.state = TSOS.State.READY;
             _PCBList.push(pcb);
             _PCBQueue.enqueue(pcb);
             TSOS.Control.createProcessRow(pcb);
@@ -95,7 +100,9 @@ var TSOS;
             TSOS.Control.updateMemoryView();
         }
         krnRunProcess(pcb) {
-            if (pcb.state === TSOS.State.NEW) {
+            if (pcb.state === TSOS.State.READY) {
+                _CPU.init(); // Reset the CPU values before we run the application
+                this.currentRunningProcess = pcb;
                 pcb.state = TSOS.State.RUNNING;
                 _CPU.isExecuting = true;
             }

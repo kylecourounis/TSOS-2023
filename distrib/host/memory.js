@@ -72,10 +72,10 @@ var TSOS;
             this.memory[this.mar] = this.mdr;
         }
         /**
-         * Clears memory with a specific length.
+         * Clears memory starting at the specified address with the specified length.
          */
-        clearMemory(segmentLength) {
-            for (let i = 0x0; i < segmentLength; i++) {
+        clearMemory(start, segmentLength) {
+            for (let i = start; i < segmentLength; i++) {
                 this.memory[i] = 0x00;
             }
         }

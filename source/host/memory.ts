@@ -87,10 +87,10 @@ module TSOS {
         }
 
         /**
-         * Clears memory with a specific length.
+         * Clears memory starting at the specified address with the specified length.
          */
-        public clearMemory(segmentLength: number) {
-            for (let i = 0x0; i < segmentLength; i++) {
+        public clearMemory(start: number, segmentLength: number) {
+            for (let i = start; i < segmentLength; i++) {
                 this.memory[i] = 0x00;
             }
         }

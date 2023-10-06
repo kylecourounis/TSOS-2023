@@ -196,7 +196,7 @@ var TSOS;
             processes.appendChild(row);
         }
         // Function to update the table entry for the PCB
-        updatePCBRow(pcb) {
+        static updatePCBRow(pcb) {
             // Get the table row
             let row = document.getElementById(`pid${pcb.pid}`);
             // Update state
@@ -207,7 +207,7 @@ var TSOS;
             row.cells[4].innerHTML = TSOS.Utils.toHex(pcb.acc, 2);
             row.cells[5].innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
             row.cells[6].innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
-            row.cells[7].innerHTML = pcb.zFlag.toString();
+            row.cells[7].innerHTML = TSOS.Utils.toHex(pcb.zFlag, 2);
         }
     }
     TSOS.Control = Control;

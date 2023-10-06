@@ -34,6 +34,15 @@ module TSOS {
 
             this.state = State.NEW;
         }
+
+        public updateFromCPU(pc: number, ir: number, acc: number, xReg: number, yReg: number, zFlag: number): void {
+            this.programCounter = pc;
+            this.instructionRegister = ir;
+            this.acc = acc;
+            this.xReg = xReg;
+            this.yReg = yReg;
+            this.zFlag = zFlag;
+        }
     }
 
     export enum State {
