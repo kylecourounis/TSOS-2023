@@ -21,6 +21,7 @@
 module TSOS {
 
     export class Control {
+        public static stepMode: boolean = false;
 
         public static hostInit(): void {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
@@ -82,9 +83,10 @@ module TSOS {
             // Disable the (passed-in) start button...
             btn.disabled = true;
 
-            // .. enable the Halt and Reset buttons ...
+            // .. enable the Halt, Reset, and step control buttons ...
             (<HTMLButtonElement>document.getElementById("btnHaltOS")).disabled = false;
             (<HTMLButtonElement>document.getElementById("btnReset")).disabled = false;
+            (<HTMLButtonElement>document.getElementById("btnStepMode")).disabled = false;
 
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
@@ -92,6 +94,11 @@ module TSOS {
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+
+            _Memory = new Memory();
+            _Memory.init();
+
+            _MemAccessor = new MemoryAccessor(_Memory);
 
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
@@ -116,6 +123,143 @@ module TSOS {
             // That boolean parameter is the 'forceget' flag. When it is true it causes the page to always
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
+        }
+
+        public static hostBtnStepMode_click(btn): void {
+            (<HTMLButtonElement>document.getElementById("btnNextStep")).disabled = !(<HTMLButtonElement>document.getElementById("btnNextStep")).disabled;
+
+            if (!Control.stepMode) {
+                Control.stepMode = true;
+
+                (<HTMLButtonElement>document.getElementById("btnStepMode")).value = "Step Mode: ON";
+
+                _CPU.isExecuting = false;
+            } else {
+                Control.stepMode = false;
+
+                (<HTMLButtonElement>document.getElementById("btnStepMode")).value = "Step Mode: OFF";
+
+                _CPU.isExecuting = true;
+            }
+        }
+
+        public static hostBtnNextStep_click(btn): void {
+            if (Control.stepMode && _Kernel.currentRunningProcess) {
+                _KernelInterruptQueue.enqueue(new Interrupt(NEXT_STEP_IRQ, []));
+            }
+        }
+
+        public static initMemoryView(): void {
+            let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
+
+            // Since you wanted rows of 8 spaces in memory
+            for (let i = 0; i < _Memory.memory.length / 8; i++) {
+                memoryTable.insertRow();
+
+                let addrElement: HTMLTableCellElement = document.createElement('td');
+
+                addrElement.innerHTML = Utils.toHex(i * 8, 4);
+                memoryTable.rows[memoryTable.rows.length - 1].appendChild(addrElement);
+
+                for (let j = 0; j < 8; j++) {
+                    let element: HTMLTableCellElement = document.createElement('td');
+                    element.id = `mem${i * 8 + j}`;
+                    element.innerHTML = Utils.toHex(0, 2); // set all spaces to zero
+                    memoryTable.rows[memoryTable.rows.length - 1].appendChild(element);
+                }
+            }
+        }
+
+        public static updateMemoryView(): void {
+            let memoryTable = (<HTMLTableElement> document.getElementById("memory"));
+
+            for (let i = 0; i < _Memory.memory.length; i++) {
+                let row: HTMLTableRowElement = memoryTable.rows[i];
+
+                for (let j = 1; j <= 8; j++) {
+                    let element = document.getElementById(`mem${i * 8 + j - 1}`);
+
+                    if (element != null) {
+                        element.innerHTML = Utils.toHex(_Memory.memory[i * 8 + j - 1], 2);
+                    }
+                }
+            }
+        }
+
+        public static updateCPUView(): void {
+            document.getElementById("cpu-PC").innerHTML = Utils.toHex(_CPU.PC, 2);
+            document.getElementById("cpu-IR").innerHTML = Utils.toHex(_CPU.IR, 2);
+            document.getElementById("cpu-Acc").innerHTML = Utils.toHex(_CPU.Acc, 2);
+            document.getElementById("cpu-X").innerHTML = Utils.toHex(_CPU.Xreg, 2);
+            document.getElementById("cpu-Y").innerHTML = Utils.toHex(_CPU.Yreg, 2);
+            document.getElementById("cpu-Z").innerHTML = Utils.toHex(_CPU.Zflag, 2);
+        }
+
+        public static createProcessRow(pcb: PCB): void {
+            // Create the row for the pcb info to be placed in
+            let row: HTMLTableRowElement = document.createElement('tr');
+            row.id = `pid${pcb.pid}`;
+
+            // Create PID element
+            let pidElem: HTMLTableCellElement = document.createElement('td');
+            pidElem.innerHTML = pcb.pid.toString();
+            row.appendChild(pidElem);
+
+            // Create State element
+            let stateElem: HTMLTableCellElement = document.createElement('td');
+            stateElem.innerHTML = pcb.state.toString();
+            row.appendChild(stateElem);
+
+            // Create PC element
+            let pcElem: HTMLTableCellElement = document.createElement('td');
+            pcElem.innerHTML = Utils.toHex(pcb.programCounter, 2);
+            row.appendChild(pcElem);
+
+            // Create IR element
+            let irElem: HTMLTableCellElement = document.createElement('td');
+            irElem.innerHTML = Utils.toHex(pcb.instructionRegister, 2);
+            row.appendChild(irElem);
+
+            // Create Acc element
+            let accElem: HTMLTableCellElement = document.createElement('td');
+            accElem.innerHTML = Utils.toHex(pcb.acc, 2);
+            row.appendChild(accElem);
+
+            // Create X Reg element
+            let xRegElem: HTMLTableCellElement = document.createElement('td');
+            xRegElem.innerHTML = Utils.toHex(pcb.xReg, 2);
+            row.appendChild(xRegElem);
+
+            // Create Y Reg element
+            let yRegElem: HTMLTableCellElement = document.createElement('td');
+            yRegElem.innerHTML = Utils.toHex(pcb.yReg, 2);
+            row.appendChild(yRegElem);
+
+            // Create Z flag element
+            let zFlagElem: HTMLTableCellElement = document.createElement('td');
+            zFlagElem.innerHTML = pcb.zFlag.toString();
+            row.appendChild(zFlagElem);
+
+            // Append to table
+            let processes = <HTMLTableElement>document.querySelector('#processes');
+            processes.appendChild(row);
+        }
+
+        // Function to update the table entry for the PCB
+        public static updatePCBRow(pcb: PCB): void {
+            // Get the table row
+            let row: HTMLTableRowElement = <HTMLTableRowElement>document.getElementById(`pid${pcb.pid}`);
+
+            // Update state
+            row.cells[1].innerHTML = pcb.state;
+
+            // Update each of the CPU fields
+            row.cells[2].innerHTML = Utils.toHex(pcb.programCounter, 2);
+            row.cells[3].innerHTML = Utils.toHex(pcb.instructionRegister, 2);
+            row.cells[4].innerHTML = Utils.toHex(pcb.acc, 2);
+            row.cells[5].innerHTML = Utils.toHex(pcb.xReg, 2);
+            row.cells[6].innerHTML = Utils.toHex(pcb.yReg, 2);
+            row.cells[7].innerHTML = Utils.toHex(pcb.zFlag, 2);
         }
     }
 }

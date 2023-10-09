@@ -101,7 +101,7 @@ module TSOS {
             // status
             sc = new ShellCommand(this.shellStatus,
                                   "status",
-                                  "- Sets the value of the status element on the VM.");
+                                  "<value> - Sets the value of the status element on the VM.");
             this.commandList[this.commandList.length] = sc;
 
             // load
@@ -110,6 +110,12 @@ module TSOS {
                                  "- Validates the user code from the textarea.");
             this.commandList[this.commandList.length] = sc;
             
+            // load
+            sc = new ShellCommand(this.shellRun,
+                                  "run",
+                                  "<pid> - Executes the program with the specified process id.");
+            this.commandList[this.commandList.length] = sc;
+
             // bsod
             sc = new ShellCommand(this.shellBSOD,
                                   "bsod",
@@ -167,7 +173,8 @@ module TSOS {
             }
 
             if (cmd.length > 0) {
-                this.previousCommands.push(cmd);
+                let prevCommand = cmd + " " + args.toString().replaceAll(",", " "); // the formatted version with arguments.
+                this.previousCommands.push(prevCommand);
             }
             
             this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
@@ -328,6 +335,10 @@ module TSOS {
                         _StdOut.putText("Validates the user code from the text area to ensure it has only hex and/or spaces.");
                         break;
 
+                    case "run":
+                        _StdOut.putText("Runs the program with the specified process id.");
+                        break;
+    
                     case "bsod":
                         _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
@@ -417,13 +428,30 @@ module TSOS {
             let value = JSON.stringify((<HTMLInputElement>textArea).value);
 
             if (value.length > 0) {
-                value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
+                value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function, and replace the carriage returns
+                
+                if (regex.test(value)) {
+                    let program = value.split(" ");
                     
-                if (regex.test(value.replaceAll("\\n", " "))) {
-                    _StdOut.putText("The user program is valid.");
+                    // Check if the program is within the size of a segment.
+                    if (program.length <= 256) {
+                        _Kernel.krnInitProcess(program);
+                    } else {
+                        _StdOut.putText("The user program is too long.");
+                    }
                 } else {
                     _StdOut.putText("The user program is invalid.");
                 }
+            }
+        }
+
+        public shellRun(args: string[]) {
+            if (args.length > 0) {
+                let pid = parseInt(args[0]);
+
+                _Kernel.krnRunProcess(pid);
+            } else {
+                _StdOut.putText("Error: please specify a PID");
             }
         }
 

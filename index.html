@@ -14,24 +14,32 @@
    <!-- Host (Virtual Machine / Hardware Simulation) Routines -->
    <script type="text/javascript" src="distrib/host/control.js"></script>
    <script type="text/javascript" src="distrib/host/devices.js"></script>
+   <script type="text/javascript" src="distrib/host/helpers/opCode.js"></script>
    <script type="text/javascript" src="distrib/host/cpu.js"></script>
+   <script type="text/javascript" src="distrib/host/memory.js"></script>
+   <script type="text/javascript" src="distrib/host/memoryAccessor.js"></script>
 
    <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
+   <script type="text/javascript" src="distrib/os/pcb.js"></script>
+   <script type="text/javascript" src="distrib/os/memoryManager.js"></script>
    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
    <script type="text/javascript" src="distrib/os/canvastext.js"></script>
    <script type="text/javascript" src="distrib/os/console.js"></script>
    <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
    <script type="text/javascript" src="distrib/os/deviceDriverKeyboard.js"></script>
    <script type="text/javascript" src="distrib/os/queue.js"></script>
+   <script type="text/javascript" src="distrib/os/stack.js"></script>
    <script type="text/javascript" src="distrib/os/shell.js"></script>
    <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
    <script type="text/javascript" src="distrib/os/userCommand.js"></script>
+   <script type="text/javascript" src="distrib/os/systemCalls.js"></script>
    <script type="text/javascript" src="distrib/os/kernel.js"></script>
+   <script type="text/javascript" src="distrib/os/interruptRoutines.js"></script>
 
    <!-- Other Routines -->
    <script type="text/javascript" src="distrib/utils.js"></script>
    <!-- Uncomment the line below to enable GLaDOS testing. -->
-   <!-- <script type="text/javascript" src="https://alanclasses.github.io/TSOS/test/glados-ip0.js"></script> -->
+   <script type="text/javascript" src="https://alanclasses.github.io/TSOS/test/glados-ip2.js"></script>
    
 </head>
 
@@ -65,6 +73,27 @@
              value="Reset"
              tabindex="2"
              onclick="TSOS.Control.hostBtnReset_click(this);">
+
+
+      <input type="button"
+               style="width: 120px;"
+               id = "btnStepMode"
+               name="brnStepMode"
+               class="normal_button"
+               disabled="disabled"
+               value="Step Mode: OFF"
+               tabindex="3"
+               onclick="TSOS.Control.hostBtnStepMode_click(this);">
+
+
+      <input type="button"
+               id = "btnNextStep"
+               name="brnNextStep"
+               class="normal_button"
+               disabled="disabled"
+               value=">"
+               tabindex="4"
+               onclick="TSOS.Control.hostBtnNextStep_click(this);">
 
       <div float="right">
          <span id="date-time"></span>
@@ -103,6 +132,50 @@
                    cols="48"
          ></textarea>
       </label>
+   </div>
+
+   CPU:
+   <div class="table-container">
+      <table class="os-table" id="cpu">
+         <tr>
+            <th>PC</th>
+            <th>IR</th>
+            <th>Acc</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>Z</th>
+         </tr>
+         <tr>
+            <td id="cpu-PC"></td>
+            <td id="cpu-IR"></td>
+            <td id="cpu-Acc"></td>
+            <td id="cpu-X"></td>
+            <td id="cpu-Y"></td>
+            <td id="cpu-Z"></td>
+         </tr>
+      </table>
+   </div>
+
+   Processes:
+   <div class="table-container">
+      <table class="os-table" id="processes">
+         <tr>
+            <th>PID</th>
+            <th>State</th>
+            <th>PC</th>
+            <th>IR</th>
+            <th>Acc</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>Z</th>
+         </tr>
+      </table>
+   </div>
+
+   Memory:
+   <div class="table-container">
+      <table class="os-table" id="memory">
+      </table>
    </div>
 </div>
 

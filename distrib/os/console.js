@@ -12,6 +12,7 @@ var TSOS;
         currentXPosition;
         currentYPosition;
         buffer;
+        xPositions = new TSOS.Stack();
         constructor(currentFont = _DefaultFontFamily, currentFontSize = _DefaultFontSize, currentXPosition = 0, currentYPosition = _DefaultFontSize, buffer = "") {
             this.currentFont = currentFont;
             this.currentFontSize = currentFontSize;
@@ -73,11 +74,20 @@ var TSOS;
                 decided to write one function and use the term "text" to connote string or char.
             */
             if (text !== "") {
-                // Draw the text at the current X and Y coordinates.
-                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
-                // Move the current X position.
-                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
-                this.currentXPosition = this.currentXPosition + offset;
+                // Check the length of each character in the text to properly wrap the text
+                for (let i = 0; i < text.length; i++) {
+                    let offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text.charAt(i));
+                    // Go to the next line if needed
+                    if (this.currentXPosition + offset > _Canvas.width) {
+                        this.xPositions.push(this.currentXPosition);
+                        this.buffer += "\n";
+                        this.advanceLine();
+                    }
+                    // Draw the character at the current X and Y coordinates.
+                    _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text.charAt(i));
+                    // Move the current X position.
+                    this.currentXPosition = this.currentXPosition + offset;
+                }
             }
         }
         completeCommand() {
@@ -126,6 +136,15 @@ var TSOS;
                 this.currentXPosition = this.currentXPosition - charSize;
                 // Remove the character from the buffer
                 this.buffer = this.buffer.substring(0, this.buffer.length - 1);
+                // Find where we wrap the line
+                if (this.buffer.charAt(this.buffer.length - 1) === "\n") {
+                    // Set x to end of previous line
+                    this.currentXPosition = this.xPositions.pop();
+                    // Move back up one line
+                    this.currentYPosition -= this.getLineHeight();
+                    // This removes \n
+                    this.buffer = this.buffer.substring(0, this.buffer.length - 1);
+                }
                 return true;
             }
             else {

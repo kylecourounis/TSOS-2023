@@ -46,3 +46,20 @@ h3 {
   font-size: 8pt;
   text-align: center;
 }
+
+.table-container {
+  width: 380px;
+  height: 200px;
+  overflow-y: auto;
+}
+
+.os-table {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+.os-table th, td {
+  border: 1px solid black;
+  background-color: white;
+  padding: 10px;
+}

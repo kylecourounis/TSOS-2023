@@ -16,6 +16,7 @@ module TSOS {
     export class Cpu {
 
         constructor(public PC: number = 0,
+                    public IR: number = 0,
                     public Acc: number = 0,
                     public Xreg: number = 0,
                     public Yreg: number = 0,
@@ -26,6 +27,7 @@ module TSOS {
 
         public init(): void {
             this.PC = 0;
+            this.IR = 0;
             this.Acc = 0;
             this.Xreg = 0;
             this.Yreg = 0;
@@ -33,10 +35,169 @@ module TSOS {
             this.isExecuting = false;
         }
 
+        /**
+         * The fetch cycle.
+         */
+        public fetch() {
+            if (this.PC > 0) {
+                this.PC++;
+            }
+    
+            _MemAccessor.setMAR(this.PC);
+            this.IR = _MemAccessor.read();
+        }
+    
+        /**
+         * The decode cycle.
+         * @param numOperands The number of operands in this instruction.
+         */
+        public decode(numOperands: number) {
+            if (numOperands === 1) {
+                this.PC++;
+
+                _MemAccessor.setLowOrderByte(this.PC);
+        
+                _MemAccessor.decodedByte1 = _MemAccessor.read();
+            } else if (numOperands === 2) {
+                _MemAccessor.readImmediate(this.PC + 1);
+                _MemAccessor.decodedByte1 = _MemAccessor.getMDR();
+    
+                _MemAccessor.setLowOrderByte(_MemAccessor.decodedByte1);
+
+                // ------------------
+
+                _MemAccessor.readImmediate(this.PC + 2);
+                _MemAccessor.decodedByte2 = _MemAccessor.getMDR();
+    
+                _MemAccessor.setHighOrderByte(_MemAccessor.decodedByte2);
+
+                this.PC += 2;
+            }
+    
+            _MemAccessor.read();
+        }
+    
+        /**
+         * The execute cycle.
+         */
+        public execute() {
+            switch (this.IR) {
+                case OpCode.LDA_C: {
+                    this.Acc = _MemAccessor.decodedByte1;
+                    break;
+                }
+        
+                case OpCode.LDA_M: {
+                    this.Acc = _MemAccessor.getMDR();
+                    break;
+                }
+        
+                case OpCode.STA: {
+                    _MemAccessor.write(this.Acc);
+                    break;
+                }
+        
+                case OpCode.ADC: {
+                    this.Acc += _MemAccessor.read();
+                    break;
+                }
+        
+                case OpCode.LDX_C: {
+                    this.Xreg = _MemAccessor.decodedByte1;
+                    break;
+                }
+        
+                case OpCode.LDX_M: {
+                    this.Xreg = _MemAccessor.getMDR();
+                    break;
+                }
+        
+                case OpCode.LDY_C: {
+                    this.Yreg = _MemAccessor.decodedByte1;
+                    break;
+                }
+        
+                case OpCode.LDY_M: {
+                    this.Yreg = _MemAccessor.getMDR();
+                    break;
+                }
+        
+                case OpCode.NOP: {
+                    // No operation. Easy! :)
+                    break;
+                }
+        
+                case OpCode.BRK: {
+                    this.init();
+
+                    _Kernel.currentRunningProcess.state = State.TERMINATED;
+
+                    this.isExecuting = false;
+
+                    break;
+                }
+        
+                case OpCode.CPX: {
+                    if (this.Xreg === _MemAccessor.getMDR()) {
+                        this.Zflag = 0x01;
+                    } else {
+                        this.Zflag = 0x00;
+                    }
+                    
+                    break;
+                }
+        
+                case OpCode.BNE: {
+                    if (this.Zflag == 0x00) {
+                        let offset = _MemAccessor.getMDR();
+                        let newLoc = this.PC + offset; // The new location
+
+                        // The only space we're working with right now
+                        if (newLoc > 256) {
+                            newLoc -= 256;
+                        }
+
+                        this.PC = newLoc;
+                    }
+                    
+                    break;
+                }
+        
+                case OpCode.INC: {
+                    this.Acc = _MemAccessor.getMDR();
+                    this.Acc += 1;
+                    _MemAccessor.write(this.Acc);
+                    
+                    break;
+                }
+        
+                case OpCode.SYS: {
+                    if (this.Xreg === 1) {
+                        _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_INT, [this.Yreg.toString()]));
+                    } else if (this.Xreg === 2) {
+                        _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_STR, [this.Yreg]));
+                    }
+                    
+                    break;
+                }
+                
+                default: {
+                    _Kernel.currentRunningProcess.state = State.TERMINATED;
+                    this.isExecuting = false; // Crash the program
+                }
+            }
+        }
+
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
-            // Do the real work here. Be sure to set this.isExecuting appropriately.
+            
+            this.fetch();
+
+            let decodeCycles = DecodeCycles.get(this.IR);
+            this.decode(decodeCycles);
+
+            this.execute();
         }
     }
 }

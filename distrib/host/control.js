@@ -20,6 +20,7 @@
 var TSOS;
 (function (TSOS) {
     class Control {
+        static stepMode = false;
         static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             setInterval(() => {
@@ -66,14 +67,18 @@ var TSOS;
         static hostBtnStartOS_click(btn) {
             // Disable the (passed-in) start button...
             btn.disabled = true;
-            // .. enable the Halt and Reset buttons ...
+            // .. enable the Halt, Reset, and step control buttons ...
             document.getElementById("btnHaltOS").disabled = false;
             document.getElementById("btnReset").disabled = false;
+            document.getElementById("btnStepMode").disabled = false;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new TSOS.Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            _Memory = new TSOS.Memory();
+            _Memory.init();
+            _MemAccessor = new TSOS.MemoryAccessor(_Memory);
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
@@ -95,6 +100,114 @@ var TSOS;
             // That boolean parameter is the 'forceget' flag. When it is true it causes the page to always
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
+        }
+        static hostBtnStepMode_click(btn) {
+            document.getElementById("btnNextStep").disabled = !document.getElementById("btnNextStep").disabled;
+            if (!Control.stepMode) {
+                Control.stepMode = true;
+                document.getElementById("btnStepMode").value = "Step Mode: ON";
+                _CPU.isExecuting = false;
+            }
+            else {
+                Control.stepMode = false;
+                document.getElementById("btnStepMode").value = "Step Mode: OFF";
+                _CPU.isExecuting = true;
+            }
+        }
+        static hostBtnNextStep_click(btn) {
+            if (Control.stepMode && _Kernel.currentRunningProcess) {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(NEXT_STEP_IRQ, []));
+            }
+        }
+        static initMemoryView() {
+            let memoryTable = document.getElementById("memory");
+            // Since you wanted rows of 8 spaces in memory
+            for (let i = 0; i < _Memory.memory.length / 8; i++) {
+                memoryTable.insertRow();
+                let addrElement = document.createElement('td');
+                addrElement.innerHTML = TSOS.Utils.toHex(i * 8, 4);
+                memoryTable.rows[memoryTable.rows.length - 1].appendChild(addrElement);
+                for (let j = 0; j < 8; j++) {
+                    let element = document.createElement('td');
+                    element.id = `mem${i * 8 + j}`;
+                    element.innerHTML = TSOS.Utils.toHex(0, 2); // set all spaces to zero
+                    memoryTable.rows[memoryTable.rows.length - 1].appendChild(element);
+                }
+            }
+        }
+        static updateMemoryView() {
+            let memoryTable = document.getElementById("memory");
+            for (let i = 0; i < _Memory.memory.length; i++) {
+                let row = memoryTable.rows[i];
+                for (let j = 1; j <= 8; j++) {
+                    let element = document.getElementById(`mem${i * 8 + j - 1}`);
+                    if (element != null) {
+                        element.innerHTML = TSOS.Utils.toHex(_Memory.memory[i * 8 + j - 1], 2);
+                    }
+                }
+            }
+        }
+        static updateCPUView() {
+            document.getElementById("cpu-PC").innerHTML = TSOS.Utils.toHex(_CPU.PC, 2);
+            document.getElementById("cpu-IR").innerHTML = TSOS.Utils.toHex(_CPU.IR, 2);
+            document.getElementById("cpu-Acc").innerHTML = TSOS.Utils.toHex(_CPU.Acc, 2);
+            document.getElementById("cpu-X").innerHTML = TSOS.Utils.toHex(_CPU.Xreg, 2);
+            document.getElementById("cpu-Y").innerHTML = TSOS.Utils.toHex(_CPU.Yreg, 2);
+            document.getElementById("cpu-Z").innerHTML = TSOS.Utils.toHex(_CPU.Zflag, 2);
+        }
+        static createProcessRow(pcb) {
+            // Create the row for the pcb info to be placed in
+            let row = document.createElement('tr');
+            row.id = `pid${pcb.pid}`;
+            // Create PID element
+            let pidElem = document.createElement('td');
+            pidElem.innerHTML = pcb.pid.toString();
+            row.appendChild(pidElem);
+            // Create State element
+            let stateElem = document.createElement('td');
+            stateElem.innerHTML = pcb.state.toString();
+            row.appendChild(stateElem);
+            // Create PC element
+            let pcElem = document.createElement('td');
+            pcElem.innerHTML = TSOS.Utils.toHex(pcb.programCounter, 2);
+            row.appendChild(pcElem);
+            // Create IR element
+            let irElem = document.createElement('td');
+            irElem.innerHTML = TSOS.Utils.toHex(pcb.instructionRegister, 2);
+            row.appendChild(irElem);
+            // Create Acc element
+            let accElem = document.createElement('td');
+            accElem.innerHTML = TSOS.Utils.toHex(pcb.acc, 2);
+            row.appendChild(accElem);
+            // Create X Reg element
+            let xRegElem = document.createElement('td');
+            xRegElem.innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
+            row.appendChild(xRegElem);
+            // Create Y Reg element
+            let yRegElem = document.createElement('td');
+            yRegElem.innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
+            row.appendChild(yRegElem);
+            // Create Z flag element
+            let zFlagElem = document.createElement('td');
+            zFlagElem.innerHTML = pcb.zFlag.toString();
+            row.appendChild(zFlagElem);
+            // Append to table
+            let processes = document.querySelector('#processes');
+            processes.appendChild(row);
+        }
+        // Function to update the table entry for the PCB
+        static updatePCBRow(pcb) {
+            // Get the table row
+            let row = document.getElementById(`pid${pcb.pid}`);
+            // Update state
+            row.cells[1].innerHTML = pcb.state;
+            // Update each of the CPU fields
+            row.cells[2].innerHTML = TSOS.Utils.toHex(pcb.programCounter, 2);
+            row.cells[3].innerHTML = TSOS.Utils.toHex(pcb.instructionRegister, 2);
+            row.cells[4].innerHTML = TSOS.Utils.toHex(pcb.acc, 2);
+            row.cells[5].innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
+            row.cells[6].innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
+            row.cells[7].innerHTML = TSOS.Utils.toHex(pcb.zFlag, 2);
         }
     }
     TSOS.Control = Control;

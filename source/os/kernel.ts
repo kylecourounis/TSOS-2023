@@ -10,6 +10,8 @@
 module TSOS {
 
     export class Kernel {
+        public currentRunningProcess: PCB;
+
         //
         // OS Startup and Shutdown Routines
         //
@@ -21,9 +23,14 @@ module TSOS {
             _KernelBuffers = new Array();         // Buffers... for the kernel.
             _KernelInputQueue = new Queue();      // Where device input lands before being processed out somewhere.
 
+            _PCBQueue = new Queue(); // The process control block queue
+            _MemoryManager = new MemoryManager(); // The memory manager
+            
             // Initialize the console.
             _Console = new Console();             // The command line interface / console I/O device.
             _Console.init();
+
+            Control.initMemoryView();
 
             // Initialize standard input and output to the _Console.
             _StdIn  = _Console;
@@ -56,7 +63,16 @@ module TSOS {
 
         public krnShutdown() {
             this.krnTrace("begin shutdown OS");
-            // TODO: Check for running processes.  If there are some, alert and stop. Else...
+            
+            // Set each process to a terminated state
+            _PCBList.forEach(pcb => {
+                if (pcb.state === State.RUNNING) {
+                    pcb.state = State.TERMINATED;
+
+                    Control.updatePCBRow(pcb);
+                }
+            })
+
             // ... Disable the Interrupts.
             this.krnTrace("Disabling the interrupts.");
             this.krnDisableInterrupts();
@@ -83,11 +99,70 @@ module TSOS {
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 _CPU.cycle();
+
+                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
+
+                Control.updatePCBRow(this.currentRunningProcess); // Update the visual
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
         }
 
+        //
+        // Initialize a process
+        //
+        public krnInitProcess(program: string[]) {
+            _Memory.clearMemory(0x00, 256);
+
+            for (let i = 0; i < program.length; i++) {
+                _MemAccessor.writeImmediate(i, parseInt(program[i], 16));
+            }
+            
+            let pcb = new PCB();
+
+            pcb.state = State.READY;
+
+            _PCBList.push(pcb); // This is what we're actually using for the moment
+            _PCBQueue.enqueue(pcb); // This is WIP
+
+            Control.createProcessRow(pcb);
+
+            _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
+
+            Control.updateMemoryView();
+        }
+
+        public krnRunProcess(pid: number) {
+            let pcb = <PCB>_PCBList[pid];
+
+            if (pcb) {
+                if (pcb.state === State.READY) {
+                    _CPU.init(); // Reset the CPU values before we run the application
+                    
+                    pcb.state = State.RUNNING;
+                    this.currentRunningProcess = pcb;
+    
+                    Control.updatePCBRow(pcb);
+    
+                    // If we're not in step mode, proceed with execution normally
+                    if (!Control.stepMode) {
+                        _CPU.isExecuting = true;
+                    }
+                } else if (pcb.state === State.TERMINATED) {
+                    _StdOut.putText("Error: unable to start process with PID that has already executed."); // since we don't remove things from the PCBList (this is to keep it properly indexed), we need to tell the user that they can't run a process with the same PID again.
+                }
+            } else {
+                _StdOut.putText("Unknown PID.");
+            }
+        }
+
+        public krnTerminateProcess(pcb: PCB) {
+            pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
+
+            Control.updatePCBRow(pcb);
+
+            this.currentRunningProcess = null; // set the running process to null so we can check it
+        }
 
         //
         // Interrupt Handling
@@ -120,6 +195,15 @@ module TSOS {
                 case KEYBOARD_IRQ:
                     _krnKeyboardDriver.isr(params);   // Kernel mode device driver
                     _StdIn.handleInput();
+                    break;
+                case SYS_PRINT_INT:
+                    SystemCalls.printInt(params);
+                    break;
+                case SYS_PRINT_STR:
+                    SystemCalls.printString(params);
+                    break;
+                case NEXT_STEP_IRQ:
+                    InterruptRoutines.step();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
