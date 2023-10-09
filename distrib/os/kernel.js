@@ -81,8 +81,8 @@ var TSOS;
             }
             else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 _CPU.cycle();
-                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
-                TSOS.Control.updatePCBRow(this.currentRunningProcess);
+                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
+                TSOS.Control.updatePCBRow(this.currentRunningProcess); // Update the visual
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
@@ -98,8 +98,8 @@ var TSOS;
             }
             let pcb = new TSOS.PCB();
             pcb.state = TSOS.State.READY;
-            _PCBList.push(pcb);
-            _PCBQueue.enqueue(pcb);
+            _PCBList.push(pcb); // This is what we're actually using for the moment
+            _PCBQueue.enqueue(pcb); // This is WIP
             TSOS.Control.createProcessRow(pcb);
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
             TSOS.Control.updateMemoryView();
@@ -109,8 +109,8 @@ var TSOS;
             if (pcb) {
                 if (pcb.state === TSOS.State.READY) {
                     _CPU.init(); // Reset the CPU values before we run the application
-                    this.currentRunningProcess = pcb;
                     pcb.state = TSOS.State.RUNNING;
+                    this.currentRunningProcess = pcb;
                     TSOS.Control.updatePCBRow(pcb);
                     // If we're not in step mode, proceed with execution normally
                     if (!TSOS.Control.stepMode) {
@@ -118,17 +118,17 @@ var TSOS;
                     }
                 }
                 else if (pcb.state === TSOS.State.TERMINATED) {
-                    _StdOut.putText("Unknown PID or already executed.");
+                    _StdOut.putText("Error: unable to start process with PID that has already executed."); // since we don't remove things from the PCBList (this is to keep it properly indexed), we need to tell the user that they can't run a process with the same PID again.
                 }
             }
             else {
-                _StdOut.putText("Unknown process.");
+                _StdOut.putText("Unknown PID.");
             }
         }
         krnTerminateProcess(pcb) {
-            pcb.state = TSOS.State.TERMINATED;
+            pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
             TSOS.Control.updatePCBRow(pcb);
-            this.currentRunningProcess = null;
+            this.currentRunningProcess = null; // set the running process to null so we can check it
         }
         //
         // Interrupt Handling

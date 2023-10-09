@@ -14,6 +14,7 @@ module TSOS {
             // Increment until we reach 0x00
             let i: number = 0;
 
+            // Loop until we reach the terminator
             while (hexVal !== 0x00) {
                 let convertedChar = String.fromCharCode(hexVal);
                 _StdOut.putText(convertedChar);

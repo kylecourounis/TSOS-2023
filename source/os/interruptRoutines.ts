@@ -11,10 +11,10 @@ module TSOS {
 
              _Kernel.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
 
-            TSOS.Control.updatePCBRow(_Kernel.currentRunningProcess);
+            Control.updatePCBRow(_Kernel.currentRunningProcess);
 
-            TSOS.Control.updateMemoryView();
-            TSOS.Control.updateCPUView();
+            Control.updateMemoryView();
+            Control.updateCPUView();
         }
     }
 }

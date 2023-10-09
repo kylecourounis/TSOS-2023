@@ -339,9 +339,10 @@ var TSOS;
             // Using JSON.stringify to get the raw value including the new line and other symbols
             let value = JSON.stringify(textArea.value);
             if (value.length > 0) {
-                value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function
+                value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function, and replace the carriage returns
                 if (regex.test(value)) {
                     let program = value.split(" ");
+                    // Check if the program is within the size of a segment.
                     if (program.length <= 256) {
                         _Kernel.krnInitProcess(program);
                     }
