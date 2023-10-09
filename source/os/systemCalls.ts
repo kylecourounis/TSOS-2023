@@ -8,19 +8,21 @@ module TSOS {
         }
 
         public static printString(params) {
-            _MMU.readImmediate(params[0]);
-            let hexVal: number = _MMU.getMDR();
-
+            _MemAccessor.readImmediate(params[0]);
+            let hexVal: number = _MemAccessor.getMDR();
+            
             // Increment until we reach 0x00
             let i: number = 0;
+
             while (hexVal !== 0x00) {
                 let convertedChar = ASCII.getChar(hexVal);
+                console.log(hexVal + ", " + convertedChar);
                 _StdOut.putText(convertedChar);
 
                 i++; // increment i
 
-                _MMU.readImmediate(params[0] + i);
-                hexVal = _MMU.getMDR();
+                _MemAccessor.readImmediate(params[0] + i);
+                hexVal = _MemAccessor.getMDR();
             }
         }
     }

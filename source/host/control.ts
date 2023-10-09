@@ -21,7 +21,7 @@
 module TSOS {
 
     export class Control {
-        private static stepMode: boolean = false;
+        public static stepMode: boolean = false;
 
         public static hostInit(): void {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
@@ -98,7 +98,7 @@ module TSOS {
             _Memory = new Memory();
             _Memory.init();
 
-            _MMU = new MemoryAccessor(_Memory);
+            _MemAccessor = new MemoryAccessor(_Memory);
 
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
@@ -126,24 +126,26 @@ module TSOS {
         }
 
         public static hostBtnStepMode_click(btn): void {
+            (<HTMLButtonElement>document.getElementById("btnNextStep")).disabled = !(<HTMLButtonElement>document.getElementById("btnNextStep")).disabled;
+
             if (!Control.stepMode) {
                 Control.stepMode = true;
 
-                (<HTMLButtonElement>document.getElementById("btnNextStep")).disabled = false;
                 (<HTMLButtonElement>document.getElementById("btnStepMode")).value = "Step Mode: ON";
-    
+
                 _CPU.isExecuting = false;
             } else {
                 Control.stepMode = false;
 
-                (<HTMLButtonElement>document.getElementById("btnNextStep")).disabled = true;
                 (<HTMLButtonElement>document.getElementById("btnStepMode")).value = "Step Mode: OFF";
+
+                _CPU.isExecuting = true;
             }
         }
 
         public static hostBtnNextStep_click(btn): void {
-            if (Control.stepMode) {
-                _CPU.cycle();
+            if (Control.stepMode && _Kernel.currentRunningProcess) {
+                _KernelInterruptQueue.enqueue(new Interrupt(NEXT_STEP_IRQ, []));
             }
         }
 

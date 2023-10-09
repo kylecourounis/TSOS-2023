@@ -78,7 +78,7 @@ var TSOS;
             _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
             _Memory = new TSOS.Memory();
             _Memory.init();
-            _MMU = new TSOS.MemoryAccessor(_Memory);
+            _MemAccessor = new TSOS.MemoryAccessor(_Memory);
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
@@ -102,21 +102,21 @@ var TSOS;
             // page from its cache, which is not what we want.
         }
         static hostBtnStepMode_click(btn) {
+            document.getElementById("btnNextStep").disabled = !document.getElementById("btnNextStep").disabled;
             if (!Control.stepMode) {
                 Control.stepMode = true;
-                document.getElementById("btnNextStep").disabled = false;
                 document.getElementById("btnStepMode").value = "Step Mode: ON";
                 _CPU.isExecuting = false;
             }
             else {
                 Control.stepMode = false;
-                document.getElementById("btnNextStep").disabled = true;
                 document.getElementById("btnStepMode").value = "Step Mode: OFF";
+                _CPU.isExecuting = true;
             }
         }
         static hostBtnNextStep_click(btn) {
-            if (Control.stepMode) {
-                _CPU.cycle();
+            if (Control.stepMode && _Kernel.currentRunningProcess) {
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(NEXT_STEP_IRQ, []));
             }
         }
         static initMemoryView() {

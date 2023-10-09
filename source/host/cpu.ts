@@ -36,16 +36,6 @@ module TSOS {
         }
 
         /**
-         * Helper method to get the 2's complement of the specified number.
-         * Used for the branch instruction.
-         * @param hex The number to get the 2's comp of.
-         * @returns The 2's comp of the specified number.
-         */
-        private getOffset(hex: number) {
-            return 0xFF - hex + 1;
-        }
-
-        /**
          * The fetch cycle.
          */
         public fetch() {
@@ -53,8 +43,8 @@ module TSOS {
                 this.PC++;
             }
     
-            _MMU.setMAR(this.PC);
-            this.IR = _MMU.read();
+            _MemAccessor.setMAR(this.PC);
+            this.IR = _MemAccessor.read();
         }
     
         /**
@@ -65,26 +55,26 @@ module TSOS {
             if (numOperands === 1) {
                 this.PC++;
 
-                _MMU.setLowOrderByte(this.PC);
+                _MemAccessor.setLowOrderByte(this.PC);
         
-                _MMU.decodedByte1 = _MMU.read();
+                _MemAccessor.decodedByte1 = _MemAccessor.read();
             } else if (numOperands === 2) {
-                _MMU.readImmediate(this.PC + 1);
-                _MMU.decodedByte1 = _MMU.getMDR();
+                _MemAccessor.readImmediate(this.PC + 1);
+                _MemAccessor.decodedByte1 = _MemAccessor.getMDR();
     
-                _MMU.setLowOrderByte(_MMU.decodedByte1);
+                _MemAccessor.setLowOrderByte(_MemAccessor.decodedByte1);
 
                 // ------------------
 
-                _MMU.readImmediate(this.PC + 2);
-                _MMU.decodedByte2 = _MMU.getMDR();
+                _MemAccessor.readImmediate(this.PC + 2);
+                _MemAccessor.decodedByte2 = _MemAccessor.getMDR();
     
-                _MMU.setHighOrderByte(_MMU.decodedByte2);
+                _MemAccessor.setHighOrderByte(_MemAccessor.decodedByte2);
 
                 this.PC += 2;
             }
     
-            _MMU.read();
+            _MemAccessor.read();
         }
     
         /**
@@ -93,42 +83,42 @@ module TSOS {
         public execute() {
             switch (this.IR) {
                 case OpCode.LDA_C: {
-                    this.Acc = _MMU.decodedByte1;
+                    this.Acc = _MemAccessor.decodedByte1;
                     break;
                 }
         
                 case OpCode.LDA_M: {
-                    this.Acc = _MMU.getMDR();
+                    this.Acc = _MemAccessor.getMDR();
                     break;
                 }
         
                 case OpCode.STA: {
-                    _MMU.write(this.Acc);
+                    _MemAccessor.write(this.Acc);
                     break;
                 }
         
                 case OpCode.ADC: {
-                    this.Acc += _MMU.read();
+                    this.Acc += _MemAccessor.read();
                     break;
                 }
         
                 case OpCode.LDX_C: {
-                    this.Xreg = _MMU.decodedByte1;
+                    this.Xreg = _MemAccessor.decodedByte1;
                     break;
                 }
         
                 case OpCode.LDX_M: {
-                    this.Xreg = _MMU.getMDR();
+                    this.Xreg = _MemAccessor.getMDR();
                     break;
                 }
         
                 case OpCode.LDY_C: {
-                    this.Yreg = _MMU.decodedByte1;
+                    this.Yreg = _MemAccessor.decodedByte1;
                     break;
                 }
         
                 case OpCode.LDY_M: {
-                    this.Yreg = _MMU.getMDR();
+                    this.Yreg = _MemAccessor.getMDR();
                     break;
                 }
         
@@ -142,13 +132,15 @@ module TSOS {
 
                     TSOS.Control.updateCPUView();
                     
+                    _Kernel.currentRunningProcess.state = State.TERMINATED;
+
                     this.isExecuting = false;
 
                     break;
                 }
         
                 case OpCode.CPX: {
-                    if (this.Xreg === _MMU.getMDR()) {
+                    if (this.Xreg === _MemAccessor.getMDR()) {
                         this.Zflag = 0x01;
                     } else {
                         this.Zflag = 0x00;
@@ -159,17 +151,24 @@ module TSOS {
         
                 case OpCode.BNE: {
                     if (this.Zflag == 0x00) {
-                        let offset = this.getOffset(_MMU.getMDR());
-                        this.PC -= offset;
+                        let offset = _MemAccessor.getMDR();
+                        let newLoc = this.PC + offset; // The new location
+
+                        // The only space we're working with right now
+                        if (newLoc > 256) {
+                            newLoc -= 256;
+                        }
+
+                        this.PC = newLoc;
                     }
                     
                     break;
                 }
         
                 case OpCode.INC: {
-                    this.Acc = _MMU.getMDR();
+                    this.Acc = _MemAccessor.getMDR();
                     this.Acc += 1;
-                    _MMU.write(this.Acc);
+                    _MemAccessor.write(this.Acc);
                     
                     break;
                 }
@@ -178,13 +177,14 @@ module TSOS {
                     if (this.Xreg === 1) {
                         _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_INT, [this.Yreg.toString()]));
                     } else if (this.Xreg === 2) {
-                        _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_STR, [_MMU.decodedByte1]));
+                        _KernelInterruptQueue.enqueue(new Interrupt(SYS_PRINT_STR, [_MemAccessor.getMDR()]));
                     }
                     
                     break;
                 }
                 
                 default: {
+                    _Kernel.currentRunningProcess.state = State.TERMINATED;
                     this.isExecuting = false; // Crash the program
                 }
             }

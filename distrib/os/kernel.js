@@ -50,7 +50,13 @@ var TSOS;
         }
         krnShutdown() {
             this.krnTrace("begin shutdown OS");
-            // TODO: Check for running processes.  If there are some, alert and stop. Else...
+            // Set each process to a terminated state
+            _PCBList.forEach(pcb => {
+                if (pcb.state === TSOS.State.RUNNING) {
+                    pcb.state = TSOS.State.TERMINATED;
+                    TSOS.Control.updatePCBRow(pcb);
+                }
+            });
             // ... Disable the Interrupts.
             this.krnTrace("Disabling the interrupts.");
             this.krnDisableInterrupts();
@@ -75,12 +81,11 @@ var TSOS;
             }
             else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 _CPU.cycle();
-                _Kernel.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
-                TSOS.Control.updatePCBRow(_Kernel.currentRunningProcess);
+                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+                TSOS.Control.updatePCBRow(this.currentRunningProcess);
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
-                this.currentRunningProcess.state = TSOS.State.TERMINATED;
             }
         }
         //
@@ -89,7 +94,7 @@ var TSOS;
         krnInitProcess(program) {
             _Memory.clearMemory(0x00, 256);
             for (let i = 0; i < program.length; i++) {
-                _MMU.writeImmediate(i, parseInt(program[i], 16));
+                _MemAccessor.writeImmediate(i, parseInt(program[i], 16));
             }
             let pcb = new TSOS.PCB();
             pcb.state = TSOS.State.READY;
@@ -99,13 +104,31 @@ var TSOS;
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
             TSOS.Control.updateMemoryView();
         }
-        krnRunProcess(pcb) {
-            if (pcb.state === TSOS.State.READY) {
-                _CPU.init(); // Reset the CPU values before we run the application
-                this.currentRunningProcess = pcb;
-                pcb.state = TSOS.State.RUNNING;
-                _CPU.isExecuting = true;
+        krnRunProcess(pid) {
+            let pcb = _PCBList[pid];
+            if (pcb) {
+                if (pcb.state === TSOS.State.READY) {
+                    _CPU.init(); // Reset the CPU values before we run the application
+                    this.currentRunningProcess = pcb;
+                    pcb.state = TSOS.State.RUNNING;
+                    TSOS.Control.updatePCBRow(pcb);
+                    // If we're not in step mode, proceed with execution normally
+                    if (!TSOS.Control.stepMode) {
+                        _CPU.isExecuting = true;
+                    }
+                }
+                else if (pcb.state === TSOS.State.TERMINATED) {
+                    _StdOut.putText("Unknown PID or already executed.");
+                }
             }
+            else {
+                _StdOut.putText("Unknown process.");
+            }
+        }
+        krnTerminateProcess(pcb) {
+            pcb.state = TSOS.State.TERMINATED;
+            TSOS.Control.updatePCBRow(pcb);
+            this.currentRunningProcess = null;
         }
         //
         // Interrupt Handling
@@ -141,6 +164,9 @@ var TSOS;
                     break;
                 case SYS_PRINT_STR:
                     TSOS.SystemCalls.printString(params);
+                    break;
+                case NEXT_STEP_IRQ:
+                    TSOS.InterruptRoutines.step();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

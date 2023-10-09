@@ -173,7 +173,8 @@ module TSOS {
             }
 
             if (cmd.length > 0) {
-                this.previousCommands.push(cmd);
+                let prevCommand = cmd + " " + args.toString().replaceAll(",", " "); // the formatted version with arguments.
+                this.previousCommands.push(prevCommand);
             }
             
             this.previousCommandIdx = this.previousCommands.length; // We subtract 1 when we reference it, so we don't need to do it here
@@ -427,13 +428,15 @@ module TSOS {
             let value = JSON.stringify((<HTMLInputElement>textArea).value);
 
             if (value.length > 0) {
-                value = value.substring(1, value.length - 1); // remove the leading and trailing quotes that come from the stringify function
+                value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function
                     
-                if (regex.test(value.replaceAll("\\n", " "))) {
+                if (regex.test(value)) {
                     let program = value.split(" ");
 
-                    if (program.length < 256) {
+                    if (program.length <= 256) {
                         _Kernel.krnInitProcess(program);
+                    } else {
+
                     }
                 } else {
                     _StdOut.putText("The user program is invalid.");
@@ -444,13 +447,8 @@ module TSOS {
         public shellRun(args: string[]) {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
-                let pcb = <PCB>_PCBList[pid];
 
-                if (pcb) {
-                    _Kernel.krnRunProcess(pcb);
-                } else {
-                    _StdOut.putText("Error: Unknown PID");
-                }
+                _Kernel.krnRunProcess(pid);
             } else {
                 _StdOut.putText("Error: please specify a PID");
             }

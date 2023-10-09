@@ -18,13 +18,14 @@ const TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt pri
 const KEYBOARD_IRQ = 1;
 const SYS_PRINT_INT = 2;
 const SYS_PRINT_STR = 3;
+const NEXT_STEP_IRQ = 4;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 //
 var _CPU; // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
 var _Memory; // Utilize TypeScript's type annotation system to ensure that _Memory is an instance of the Memory class.
-var _MMU; // Utilize TypeScript's type annotation system to ensure that _MMU is an instance of the MemoryAccessor class.
+var _MemAccessor; // Utilize TypeScript's type annotation system to ensure that _MemAccessor is an instance of the MemoryAccessor class.
 var _MemoryManager; // Utilize TypeScript's type annotation system to ensure that _MemoryManager is an instance of the MemoryManager class.
 var _PCBList = [];
 var _PCBQueue = null;
