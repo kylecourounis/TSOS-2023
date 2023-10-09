@@ -113,7 +113,6 @@ var TSOS;
                 }
                 case TSOS.OpCode.BRK: {
                     this.init();
-                    TSOS.Control.updateCPUView();
                     _Kernel.currentRunningProcess.state = TSOS.State.TERMINATED;
                     this.isExecuting = false;
                     break;
@@ -150,7 +149,7 @@ var TSOS;
                         _KernelInterruptQueue.enqueue(new TSOS.Interrupt(SYS_PRINT_INT, [this.Yreg.toString()]));
                     }
                     else if (this.Xreg === 2) {
-                        _KernelInterruptQueue.enqueue(new TSOS.Interrupt(SYS_PRINT_STR, [_MemAccessor.getMDR()]));
+                        _KernelInterruptQueue.enqueue(new TSOS.Interrupt(SYS_PRINT_STR, [this.Yreg]));
                     }
                     break;
                 }
@@ -163,8 +162,6 @@ var TSOS;
         cycle() {
             _Kernel.krnTrace('CPU cycle');
             // TODO: Accumulate CPU usage and profiling statistics here.
-            // Do the real work here. Be sure to set this.isExecuting appropriately.
-            console.log(`IR: ${TSOS.Utils.toHex(this.IR, 2)}, Acc: ${TSOS.Utils.toHex(this.Acc, 2)}, xReg: ${TSOS.Utils.toHex(this.Xreg, 2)}, yReg: ${TSOS.Utils.toHex(this.Yreg, 2)}`);
             this.fetch();
             let decodeCycles = TSOS.DecodeCycles.get(this.IR);
             this.decode(decodeCycles);

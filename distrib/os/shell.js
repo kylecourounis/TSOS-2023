@@ -346,6 +346,7 @@ var TSOS;
                         _Kernel.krnInitProcess(program);
                     }
                     else {
+                        _StdOut.putText("The user program is too long.");
                     }
                 }
                 else {

@@ -13,8 +13,7 @@ var TSOS;
             // Increment until we reach 0x00
             let i = 0;
             while (hexVal !== 0x00) {
-                let convertedChar = TSOS.ASCII.getChar(hexVal);
-                console.log(hexVal + ", " + convertedChar);
+                let convertedChar = String.fromCharCode(hexVal);
                 _StdOut.putText(convertedChar);
                 i++; // increment i
                 _MemAccessor.readImmediate(params[0] + i);

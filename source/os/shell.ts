@@ -436,7 +436,7 @@ module TSOS {
                     if (program.length <= 256) {
                         _Kernel.krnInitProcess(program);
                     } else {
-
+                        _StdOut.putText("The user program is too long.");
                     }
                 } else {
                     _StdOut.putText("The user program is invalid.");

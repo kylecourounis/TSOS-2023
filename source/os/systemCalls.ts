@@ -15,8 +15,7 @@ module TSOS {
             let i: number = 0;
 
             while (hexVal !== 0x00) {
-                let convertedChar = ASCII.getChar(hexVal);
-                console.log(hexVal + ", " + convertedChar);
+                let convertedChar = String.fromCharCode(hexVal);
                 _StdOut.putText(convertedChar);
 
                 i++; // increment i
