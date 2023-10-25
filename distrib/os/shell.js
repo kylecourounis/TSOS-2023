@@ -70,8 +70,24 @@ var TSOS;
             // bsod
             sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
-            // ps  - list the running processes and their IDs
-            // kill <id> - kills the specified process id.
+            // clearmem
+            sc = new TSOS.ShellCommand(this.shellClearMemory, "clearmem", "- Clears the entire memory.");
+            this.commandList[this.commandList.length] = sc;
+            // runall
+            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "- Runs up to three programs in memory.");
+            this.commandList[this.commandList.length] = sc;
+            // ps
+            sc = new TSOS.ShellCommand(this.shellPS, "ps", "- Displays PIDs and statuses.");
+            this.commandList[this.commandList.length] = sc;
+            // kill
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<pid> - Kills the process with the specified ID.");
+            this.commandList[this.commandList.length] = sc;
+            // killall
+            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "- Kills all running processes.");
+            this.commandList[this.commandList.length] = sc;
+            // quantum
+            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<value> - Sets the Round Robin quantum.");
+            this.commandList[this.commandList.length] = sc;
             // Display the initial prompt.
             this.putPrompt();
         }
@@ -262,6 +278,24 @@ var TSOS;
                     case "bsod":
                         _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
+                    case "clearmem":
+                        _StdOut.putText("Clears memory (this has some guardrails for running programs).");
+                        break;
+                    case "runall":
+                        _StdOut.putText("Runs up to three programs in memory.");
+                        break;
+                    case "ps":
+                        _StdOut.putText("Displays all PIDs and process states to the user.");
+                        break;
+                    case "kill":
+                        _StdOut.putText("Kills the process with the specified ID.");
+                        break;
+                    case "killall":
+                        _StdOut.putText("Kills all the processes.");
+                        break;
+                    case "quantum":
+                        _StdOut.putText("Sets the Round Robin quantum.");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -375,6 +409,24 @@ var TSOS;
             else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
             }
+        }
+        shellClearMemory(args) {
+            // TODO
+        }
+        shellRunAll(args) {
+            // TODO
+        }
+        shellPS(args) {
+            // TODO
+        }
+        shellKill(args) {
+            // TODO
+        }
+        shellKillAll(args) {
+            // TODO
+        }
+        shellQuantum(args) {
+            // TODO
         }
     }
     TSOS.Shell = Shell;
