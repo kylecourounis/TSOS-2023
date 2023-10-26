@@ -21,6 +21,14 @@ module TSOS {
 
         public zFlag: number;
 
+        public base: number;
+
+        public limit: number;
+
+        public segment: number;
+
+        public location: Location;
+
         constructor() {
             this.pid = PCB.pidStore;
             PCB.pidStore++;
@@ -31,6 +39,7 @@ module TSOS {
             this.xReg = 0;
             this.yReg = 0;
             this.zFlag = 0;
+            this.location = Location.MEMORY;
 
             this.state = State.NEW;
         }
@@ -52,5 +61,10 @@ module TSOS {
         WAITING = 'Waiting',
         READY = 'Ready',
         TERMINATED = 'Terminated'
+    }
+
+    export enum Location {
+        MEMORY = 'Memory',
+        DISK_DRIVE = 'Disk Drive' // For Project 4
     }
 }

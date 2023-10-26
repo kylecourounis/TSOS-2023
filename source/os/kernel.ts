@@ -111,13 +111,11 @@ module TSOS {
         //
         // Initialize a process
         //
-        public krnInitProcess(program: string[]) {
-            _Memory.clearMemory(0x00, 256);
-
-            for (let i = 0; i < program.length; i++) {
+        public krnInitProcess(program: string[], baseAddr: number = 0) {
+            for (let i = baseAddr; i < program.length; i++) {
                 _MemAccessor.writeImmediate(i, parseInt(program[i], 16));
             }
-            
+
             let pcb = new PCB();
 
             pcb.state = State.READY;
@@ -130,6 +128,9 @@ module TSOS {
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
 
             Control.updateMemoryView();
+        }
+
+        public krnFlashProgram(program: string[], baseAddr: number) {
         }
 
         public krnRunProcess(pid: number) {
