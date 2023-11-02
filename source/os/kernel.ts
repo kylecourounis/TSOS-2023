@@ -165,6 +165,10 @@ module TSOS {
             this.currentRunningProcess = null; // set the running process to null so we can check it
         }
 
+        public krnClearMemory() {
+            _Memory.clearMemory(0, Memory.SIZE); // clears the entire memory
+        }
+
         //
         // Interrupt Handling
         //

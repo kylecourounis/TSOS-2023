@@ -528,7 +528,7 @@ module TSOS {
         }
 
         public shellClearMemory(args: string[]) {
-            // TODO
+            _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
         }
 
         public shellRunAll(args: string[]) {

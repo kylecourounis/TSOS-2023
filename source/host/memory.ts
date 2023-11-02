@@ -14,7 +14,7 @@ Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 
 module TSOS {
 
     export class Memory {
-        private static SIZE: number = 0x300;
+        public static SIZE: number = 0x300;
 
         public memory: Uint8Array;
 
