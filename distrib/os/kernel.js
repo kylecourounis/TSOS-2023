@@ -92,16 +92,19 @@ var TSOS;
         // Initialize a process
         //
         krnInitProcess(program, baseAddr = 0) {
-            _MemoryManager.allocateMemoryForProgram(program);
             let pcb = new TSOS.PCB();
             pcb.state = TSOS.State.READY;
-            _PCBList.push(pcb); // This is what we're actually using for the moment
-            _PCBQueue.enqueue(pcb); // This is WIP
-            TSOS.Control.createProcessRow(pcb);
-            _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
-            TSOS.Control.updateMemoryView();
-        }
-        krnFlashProgram(program, baseAddr) {
+            let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
+            if (success) {
+                _PCBList.push(pcb); // This is what we're actually using for the moment
+                _PCBQueue.enqueue(pcb); // This is WIP
+                _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
+                TSOS.Control.createProcessRow(pcb);
+                TSOS.Control.updateMemoryView();
+            }
+            else {
+                _StdOut.putText("You cannot load any more programs - memory is full.");
+            }
         }
         krnRunProcess(pid) {
             let pcb = _PCBList[pid];
@@ -124,6 +127,8 @@ var TSOS;
                 _StdOut.putText("Unknown PID.");
             }
         }
+        krnRunAll() {
+        }
         krnTerminateProcess(pcb) {
             pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
             TSOS.Control.updatePCBRow(pcb);
@@ -131,6 +136,7 @@ var TSOS;
         }
         krnClearMemory() {
             _Memory.clearMemory(0, TSOS.Memory.SIZE); // clears the entire memory
+            _PCBQueue.clear();
         }
         //
         // Interrupt Handling

@@ -8,7 +8,7 @@ module TSOS {
             this.availableSegments = [true, true, true];
         }
 
-        public allocateMemoryForProgram(program: string[]): void {
+        public allocateMemoryForProgram(pcb: PCB, program: string[]): boolean {
             if (program.length > 0x100) {
                 _StdOut.putText("Program is too large!");
                 return;
@@ -27,10 +27,18 @@ module TSOS {
                     }
                 }
 
-
                 for (let i = 0; i < program.length; i++) {
                     _MemAccessor.writeImmediate(segment * 0x100 + i, parseInt(program[i], 16));
                 }
+
+                pcb.segment = segment; // Just for easy reference
+
+                pcb.base = segment * 0x100;
+                pcb.limit = (segment * 0x100) + 0x100;
+
+                return true;
+            } else {
+                return false;
             }
         }
     }

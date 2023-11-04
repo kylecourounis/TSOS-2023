@@ -112,23 +112,24 @@ module TSOS {
         // Initialize a process
         //
         public krnInitProcess(program: string[], baseAddr: number = 0) {
-            _MemoryManager.allocateMemoryForProgram(program);
-
             let pcb = new PCB();
 
             pcb.state = State.READY;
 
-            _PCBList.push(pcb); // This is what we're actually using for the moment
-            _PCBQueue.enqueue(pcb); // This is WIP
+            let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
 
-            Control.createProcessRow(pcb);
-
-            _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
-
-            Control.updateMemoryView();
-        }
-
-        public krnFlashProgram(program: string[], baseAddr: number) {
+            if (success) {
+                _PCBList.push(pcb); // This is what we're actually using for the moment
+                _PCBQueue.enqueue(pcb); // This is WIP
+    
+                _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
+    
+                Control.createProcessRow(pcb);
+    
+                Control.updateMemoryView();
+            } else {
+                _StdOut.putText("You cannot load any more programs - memory is full.");
+            }
         }
 
         public krnRunProcess(pid: number) {
@@ -155,6 +156,10 @@ module TSOS {
             }
         }
 
+        public krnRunAll() {
+            
+        }
+
         public krnTerminateProcess(pcb: PCB) {
             pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
 
@@ -165,6 +170,8 @@ module TSOS {
 
         public krnClearMemory() {
             _Memory.clearMemory(0, Memory.SIZE); // clears the entire memory
+
+            _PCBQueue.clear();
         }
 
         //

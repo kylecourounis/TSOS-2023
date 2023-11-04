@@ -30,6 +30,9 @@ var TSOS;
             }
             return retVal;
         }
+        clear() {
+            this.q = [];
+        }
         toString() {
             var retVal = "";
             for (var i in this.q) {
