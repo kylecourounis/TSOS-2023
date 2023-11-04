@@ -13,6 +13,10 @@ var TSOS;
         xReg;
         yReg;
         zFlag;
+        base;
+        limit;
+        segment;
+        location;
         constructor() {
             this.pid = PCB.pidStore;
             PCB.pidStore++;
@@ -22,6 +26,7 @@ var TSOS;
             this.xReg = 0;
             this.yReg = 0;
             this.zFlag = 0;
+            this.location = Location.MEMORY;
             this.state = State.NEW;
         }
         updateFromCPU(pc, ir, acc, xReg, yReg, zFlag) {
@@ -43,5 +48,10 @@ var TSOS;
         State["READY"] = "Ready";
         State["TERMINATED"] = "Terminated";
     })(State = TSOS.State || (TSOS.State = {}));
+    let Location;
+    (function (Location) {
+        Location["MEMORY"] = "Memory";
+        Location["DISK_DRIVE"] = "Disk Drive"; // For Project 4
+    })(Location = TSOS.Location || (TSOS.Location = {}));
 })(TSOS || (TSOS = {}));
 //# sourceMappingURL=pcb.js.map

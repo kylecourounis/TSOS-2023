@@ -15,7 +15,22 @@ module TSOS {
             }
             
             if (_PCBQueue.getSize() < 3) {
-                
+                let segment = -1;
+
+                for (let i = 0; i < this.availableSegments.length; i++) {
+                    if (this.availableSegments[i] == true) {
+                        segment = i;
+
+                        this.availableSegments[i] = false;
+
+                        break;
+                    }
+                }
+
+
+                for (let i = 0; i < program.length; i++) {
+                    _MemAccessor.writeImmediate(segment * 0x100 + i, parseInt(program[i], 16));
+                }
             }
         }
     }

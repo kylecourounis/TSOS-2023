@@ -411,7 +411,7 @@ var TSOS;
             }
         }
         shellClearMemory(args) {
-            // TODO
+            _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
         }
         shellRunAll(args) {
             // TODO

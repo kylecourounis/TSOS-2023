@@ -112,9 +112,7 @@ module TSOS {
         // Initialize a process
         //
         public krnInitProcess(program: string[], baseAddr: number = 0) {
-            for (let i = baseAddr; i < program.length; i++) {
-                _MemAccessor.writeImmediate(i, parseInt(program[i], 16));
-            }
+            _MemoryManager.allocateMemoryForProgram(program);
 
             let pcb = new PCB();
 

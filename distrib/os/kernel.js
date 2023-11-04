@@ -91,11 +91,8 @@ var TSOS;
         //
         // Initialize a process
         //
-        krnInitProcess(program) {
-            _Memory.clearMemory(0x00, 256);
-            for (let i = 0; i < program.length; i++) {
-                _MemAccessor.writeImmediate(i, parseInt(program[i], 16));
-            }
+        krnInitProcess(program, baseAddr = 0) {
+            _MemoryManager.allocateMemoryForProgram(program);
             let pcb = new TSOS.PCB();
             pcb.state = TSOS.State.READY;
             _PCBList.push(pcb); // This is what we're actually using for the moment
@@ -103,6 +100,8 @@ var TSOS;
             TSOS.Control.createProcessRow(pcb);
             _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
             TSOS.Control.updateMemoryView();
+        }
+        krnFlashProgram(program, baseAddr) {
         }
         krnRunProcess(pid) {
             let pcb = _PCBList[pid];
@@ -129,6 +128,9 @@ var TSOS;
             pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
             TSOS.Control.updatePCBRow(pcb);
             this.currentRunningProcess = null; // set the running process to null so we can check it
+        }
+        krnClearMemory() {
+            _Memory.clearMemory(0, TSOS.Memory.SIZE); // clears the entire memory
         }
         //
         // Interrupt Handling

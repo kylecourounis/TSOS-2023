@@ -29,6 +29,8 @@ var _MemAccessor; // Utilize TypeScript's type annotation system to ensure that 
 var _MemoryManager; // Utilize TypeScript's type annotation system to ensure that _MemoryManager is an instance of the MemoryManager class.
 var _PCBList = [];
 var _PCBQueue = null;
+// pairs of limit registers for the memory for easy access
+var _BasesAndLimits = [[0x0000, 0x0100], [0x0100, 0x0200], [0x0200, 0x0300]];
 var _OSclock = 0; // Page 23.
 var _Mode = 0; // (currently unused)  0 = Kernel Mode, 1 = User Mode.  See page 21.
 var _Canvas; // Initialized in Control.hostInit().
