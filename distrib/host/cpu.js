@@ -113,7 +113,7 @@ var TSOS;
                 }
                 case TSOS.OpCode.BRK: {
                     this.init();
-                    _Kernel.currentRunningProcess.state = TSOS.State.TERMINATED;
+                    _PCBQueue.head().state = TSOS.State.TERMINATED;
                     this.isExecuting = false;
                     break;
                 }
@@ -154,7 +154,7 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _Kernel.currentRunningProcess.state = TSOS.State.TERMINATED;
+                    _PCBQueue.head().state = TSOS.State.TERMINATED;
                     this.isExecuting = false; // Crash the program
                 }
             }
@@ -166,6 +166,14 @@ var TSOS;
             let decodeCycles = TSOS.DecodeCycles.get(this.IR);
             this.decode(decodeCycles);
             this.execute();
+        }
+        setState(pc, ir, acc, xReg, yReg, zFlag) {
+            this.PC = pc;
+            this.IR = ir;
+            this.Acc = acc;
+            this.Xreg = xReg;
+            this.Yreg = yReg;
+            this.Zflag = zFlag;
         }
     }
     TSOS.Cpu = Cpu;

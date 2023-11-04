@@ -144,7 +144,7 @@ module TSOS {
         }
 
         public static hostBtnNextStep_click(btn): void {
-            if (Control.stepMode && _Kernel.currentRunningProcess) {
+            if (Control.stepMode) {
                 _KernelInterruptQueue.enqueue(new Interrupt(NEXT_STEP_IRQ, []));
             }
         }

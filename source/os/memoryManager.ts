@@ -41,5 +41,11 @@ module TSOS {
                 return false;
             }
         }
+
+        public deallocateMemory(pcb: PCB) {
+            if (pcb.state === State.TERMINATED) {
+                this.availableSegments[pcb.segment] = true;
+            }
+        }
     }
 }

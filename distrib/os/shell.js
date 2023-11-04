@@ -414,14 +414,19 @@ var TSOS;
             _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
         }
         shellRunAll(args) {
-            // TODO
+            for (let i in _PCBQueue.q) {
+                let pcb = _PCBQueue.q[i];
+                if (pcb.state === TSOS.State.READY) {
+                    _Kernel.krnRunProcess(pcb.pid);
+                }
+            }
         }
         shellPS(args) {
-            if (_PCBQueue.getSize() == 0) {
-                _StdOut.putText("There are no processes in memory");
+            if (_PCBList.length == 0) {
+                _StdOut.putText("No processes have been run.");
             }
-            for (let i = 0; i < _PCBQueue.getSize(); i++) {
-                let pcb = _PCBQueue.q[i];
+            for (let i = 0; i < _PCBList.length; i++) {
+                let pcb = _PCBList[i];
                 _StdOut.putText(`PID: ${pcb.pid}`);
                 _StdOut.advanceLine();
                 _StdOut.putText(`State: ${pcb.state}`);
@@ -449,7 +454,13 @@ var TSOS;
             // TODO
         }
         shellQuantum(args) {
-            // TODO
+            if (args.length > 0) {
+                let newQuantum = parseInt(args[0]);
+                _CpuScheduler.quantum = newQuantum;
+            }
+            else {
+                _StdOut.putText("Please specify a new quantum.");
+            }
         }
     }
     TSOS.Shell = Shell;

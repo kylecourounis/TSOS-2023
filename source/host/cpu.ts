@@ -130,7 +130,7 @@ module TSOS {
                 case OpCode.BRK: {
                     this.init();
 
-                    _Kernel.currentRunningProcess.state = State.TERMINATED;
+                    _PCBQueue.head().state = State.TERMINATED;
 
                     this.isExecuting = false;
 
@@ -182,7 +182,7 @@ module TSOS {
                 }
                 
                 default: {
-                    _Kernel.currentRunningProcess.state = State.TERMINATED;
+                    _PCBQueue.head().state = State.TERMINATED;
                     this.isExecuting = false; // Crash the program
                 }
             }
@@ -198,6 +198,15 @@ module TSOS {
             this.decode(decodeCycles);
 
             this.execute();
+        }
+
+        public setState(pc: number, ir: number, acc: number, xReg: number, yReg: number, zFlag: number): void {
+            this.PC = pc;
+            this.IR = ir;
+            this.Acc = acc;
+            this.Xreg = xReg;
+            this.Yreg = yReg;
+            this.Zflag = zFlag;
         }
     }
 }

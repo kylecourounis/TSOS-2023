@@ -115,7 +115,7 @@ var TSOS;
             }
         }
         static hostBtnNextStep_click(btn) {
-            if (Control.stepMode && _Kernel.currentRunningProcess) {
+            if (Control.stepMode) {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(NEXT_STEP_IRQ, []));
             }
         }

@@ -32,6 +32,11 @@ var TSOS;
                 return false;
             }
         }
+        deallocateMemory(pcb) {
+            if (pcb.state === TSOS.State.TERMINATED) {
+                this.availableSegments[pcb.segment] = true;
+            }
+        }
     }
     TSOS.MemoryManager = MemoryManager;
 })(TSOS || (TSOS = {}));

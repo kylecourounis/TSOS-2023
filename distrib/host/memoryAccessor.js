@@ -24,6 +24,12 @@ var TSOS;
             this.memory = memory;
         }
         /**
+         * Gets the physical address.
+         */
+        getPhysicalAddress(virtualAddr, baseAddr) {
+            return virtualAddr + baseAddr;
+        }
+        /**
          * Returns the value of the MAR.
          * @returns The MAR
          */
@@ -55,15 +61,26 @@ var TSOS;
          * Read from memory using the program counter.
          */
         read() {
-            this.memory.read();
-            return this.memory.getMDR();
+            if (this.getMAR() >= _PCBQueue.head().limit) {
+                _StdOut.putText(`Memory access violation while reading at ${this.getMAR()}!`);
+                return null;
+            }
+            else {
+                this.memory.read();
+                return this.memory.getMDR();
+            }
         }
         /**
          * Write to memory.
          */
         write(value) {
-            this.memory.setMDR(value);
-            this.memory.write();
+            if (this.getMAR() >= _PCBQueue.head().limit) {
+                _StdOut.putText(`Memory access violation while writing at ${this.getMAR()}!`);
+            }
+            else {
+                this.memory.setMDR(value);
+                this.memory.write();
+            }
         }
         /**
          * Sets the MAR and reads the value from memory at that location.

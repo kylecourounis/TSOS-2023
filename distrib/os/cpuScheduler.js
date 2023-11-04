@@ -5,17 +5,21 @@ var TSOS;
 (function (TSOS) {
     class CpuScheduler {
         quantum;
-        currentQuantum;
-        constructor(quantum = 6, currentQuantum = 0) {
+        cycleCount;
+        constructor(quantum = 6, cycleCount = 0) {
             this.quantum = quantum;
-            this.currentQuantum = currentQuantum;
+            this.cycleCount = cycleCount;
         }
         schedule() {
-            if (this.currentQuantum == this.quantum) {
-                _CpuDispatcher.doContextSwitch();
+            if (this.cycleCount == this.quantum) {
+                // If there's only one program, we can just execute that normally.
+                if (_PCBQueue.getSize() > 1) {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(DISPATCHER_IRQ, []));
+                }
+                this.cycleCount = 0;
             }
             else {
-                this.currentQuantum++;
+                this.cycleCount++;
             }
         }
     }

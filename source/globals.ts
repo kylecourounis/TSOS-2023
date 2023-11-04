@@ -25,6 +25,8 @@ const SYS_PRINT_STR: number = 3;
 
 const NEXT_STEP_IRQ: number = 4;
 
+const DISPATCHER_IRQ: number = 5;
+
 
 //
 // Global Variables

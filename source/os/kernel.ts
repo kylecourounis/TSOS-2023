@@ -10,8 +10,6 @@
 module TSOS {
 
     export class Kernel {
-        public currentRunningProcess: PCB;
-
         //
         // OS Startup and Shutdown Routines
         //
@@ -26,8 +24,8 @@ module TSOS {
             _PCBQueue = new Queue(); // The process control block queue
             _MemoryManager = new MemoryManager(); // The memory manager
 
-            _CpuDispatcher = new CpuDispatcher();
             _CpuScheduler = new CpuScheduler();
+            _CpuDispatcher = new CpuDispatcher();
 
             // Initialize the console.
             _Console = new Console();             // The command line interface / console I/O device.
@@ -101,13 +99,11 @@ module TSOS {
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
-                if (this.currentRunningProcess.state !== State.TERMINATED) {
-                    _CPU.cycle();
+                _CpuScheduler.schedule();
 
-                    this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
-                }
-                
-                Control.updatePCBRow(this.currentRunningProcess); // Update the visual
+                _CPU.cycle();
+
+                Control.updatePCBRow(_PCBQueue.head()); // Update the visual
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
@@ -145,7 +141,6 @@ module TSOS {
                     _CPU.init(); // Reset the CPU values before we run the application
                     
                     pcb.state = State.RUNNING;
-                    this.currentRunningProcess = pcb;
     
                     Control.updatePCBRow(pcb);
     
@@ -161,22 +156,20 @@ module TSOS {
             }
         }
 
-        public krnRunAll() {
-            
-        }
-
         public krnTerminateProcess(pcb: PCB) {
             pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
 
             Control.updatePCBRow(pcb);
-
-            this.currentRunningProcess = null; // set the running process to null so we can check it
         }
 
         public krnClearMemory() {
-            _Memory.clearMemory(0, Memory.SIZE); // clears the entire memory
+            if (_CPU.isExecuting) {
+                _StdOut.putText("Unable to clear memory while the CPU is executing!");
+            } else {
+                _Memory.clearMemory(0, Memory.SIZE); // clears the entire memory
 
-            _PCBQueue.clear();
+                _PCBQueue.clear();
+            }
         }
         
         //
@@ -219,6 +212,9 @@ module TSOS {
                     break;
                 case NEXT_STEP_IRQ:
                     InterruptRoutines.step();
+                    break;
+                case DISPATCHER_IRQ:
+                    InterruptRoutines.triggerContextSwitch();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
