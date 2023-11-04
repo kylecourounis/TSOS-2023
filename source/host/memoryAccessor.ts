@@ -28,13 +28,6 @@ module TSOS {
         }
 
         /**
-         * Gets the physical address.
-         */
-        public getPhysicalAddress(virtualAddr: number, baseAddr: number): number {
-            return virtualAddr + baseAddr;
-        }
-
-        /**
          * Returns the value of the MAR.
          * @returns The MAR
          */
@@ -55,7 +48,7 @@ module TSOS {
          * @param address The memory address to put in the MAR.
          */
         public setMAR(address: number) {
-            this.memory.setMAR(address);
+            this.memory.setMAR(_CurrentProcess.base + address);
         }
 
         /**
@@ -70,7 +63,7 @@ module TSOS {
          * Read from memory using the program counter.
          */
         public read() {
-            if (this.getMAR() >= _PCBQueue.head().limit) {
+            if (this.getMAR() >= _CurrentProcess.limit) {
                 _StdOut.putText(`Memory access violation while reading at ${this.getMAR()}!`);
                 return null;
             } else {
@@ -83,7 +76,7 @@ module TSOS {
          * Write to memory.
          */
         public write(value: number) {
-            if (this.getMAR() >= _PCBQueue.head().limit) {
+            if (this.getMAR() >= _CurrentProcess.limit) {
                 _StdOut.putText(`Memory access violation while writing at ${this.getMAR()}!`);
             } else {
                 this.memory.setMDR(value);
@@ -97,8 +90,17 @@ module TSOS {
          * @param address The address at which to read the MDR from.
          */
         public readImmediate(address: number) {
-            this.memory.setMAR(address);
-            this.memory.read();
+            if (_CurrentProcess != null) {
+                if (this.getMAR() >= _CurrentProcess.limit) {
+                    _StdOut.putText(`Memory access violation while reading at ${this.getMAR()}!`);
+                } else {
+                    this.setMAR(address);
+                    this.memory.read();
+                }
+            } else {
+                this.memory.setMAR(address);
+                this.memory.read();
+            }
         }
 
         /**
@@ -107,10 +109,21 @@ module TSOS {
          * @param value The value to place in the MDR.
          */
         public writeImmediate(address: number, value: number) {
-            this.memory.setMAR(address);
-            this.memory.setMDR(value);
-            
-            this.memory.write();
+            if (_CurrentProcess != null) {
+                if (this.getMAR() >= _CurrentProcess.limit) {
+                    _StdOut.putText(`Memory access violation while writing at ${this.getMAR()}!`);
+                } else {
+                    this.setMAR(address);
+                    this.memory.setMDR(value);
+                    
+                    this.memory.write();
+                }
+            } else {
+                this.memory.setMAR(address);
+                this.memory.setMDR(value);
+                
+                this.memory.write();
+            }
         }
 
         /**
@@ -118,7 +131,7 @@ module TSOS {
          * @param lob Low order byte
          */
         public setLowOrderByte(lob: number) {
-            this.memory.setMAR(lob);
+            this.setMAR(lob);
         }
 
         /**
@@ -129,7 +142,7 @@ module TSOS {
             let lob = MemoryAccessor.flipEndianess(this.decodedByte1);
             let val = MemoryAccessor.flipEndianess(lob | hob);
             
-            this.memory.setMAR(val);
+            this.setMAR(val);
         }
 
         /**

@@ -103,10 +103,12 @@ module TSOS {
 
                 _CPU.cycle();
 
-                Control.updatePCBRow(_PCBQueue.head()); // Update the visual
+                Control.updatePCBRow(_CurrentProcess); // Update the visual
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
+            
+            _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
 
         //
@@ -142,6 +144,8 @@ module TSOS {
                     
                     pcb.state = State.RUNNING;
     
+                    _CurrentProcess = pcb;
+
                     Control.updatePCBRow(pcb);
     
                     // If we're not in step mode, proceed with execution normally

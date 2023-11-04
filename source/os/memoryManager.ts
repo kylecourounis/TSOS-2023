@@ -42,6 +42,17 @@ module TSOS {
             }
         }
 
+        public deallocateTerminatedProcesses() {
+            for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                let pcb: PCB = _PCBQueue.q[i];
+
+                if (pcb.state === State.TERMINATED) {
+                    this.availableSegments[pcb.segment] = true;
+                    _PCBQueue.q.splice(i, 1); // forcefully remove it
+                }
+            }
+        }
+
         public deallocateMemory(pcb: PCB) {
             if (pcb.state === State.TERMINATED) {
                 this.availableSegments[pcb.segment] = true;

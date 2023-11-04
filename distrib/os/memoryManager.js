@@ -32,6 +32,15 @@ var TSOS;
                 return false;
             }
         }
+        deallocateTerminatedProcesses() {
+            for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                let pcb = _PCBQueue.q[i];
+                if (pcb.state === TSOS.State.TERMINATED) {
+                    this.availableSegments[pcb.segment] = true;
+                    _PCBQueue.q.splice(i, 1); // forcefully remove it
+                }
+            }
+        }
         deallocateMemory(pcb) {
             if (pcb.state === TSOS.State.TERMINATED) {
                 this.availableSegments[pcb.segment] = true;

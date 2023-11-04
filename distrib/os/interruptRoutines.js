@@ -8,8 +8,8 @@ var TSOS;
             // Increment the hardware (host) clock.
             _OSclock++;
             _CPU.cycle();
-            _PCBQueue.head().updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
-            TSOS.Control.updatePCBRow(_PCBQueue.head());
+            _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+            TSOS.Control.updatePCBRow(_CurrentProcess);
             TSOS.Control.updateMemoryView();
             TSOS.Control.updateCPUView();
         }

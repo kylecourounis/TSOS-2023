@@ -113,7 +113,7 @@ var TSOS;
                 }
                 case TSOS.OpCode.BRK: {
                     this.init();
-                    _PCBQueue.head().state = TSOS.State.TERMINATED;
+                    _CurrentProcess.state = TSOS.State.TERMINATED;
                     this.isExecuting = false;
                     break;
                 }
@@ -154,7 +154,7 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _PCBQueue.head().state = TSOS.State.TERMINATED;
+                    _CurrentProcess.state = TSOS.State.TERMINATED;
                     this.isExecuting = false; // Crash the program
                 }
             }

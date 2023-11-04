@@ -130,7 +130,7 @@ module TSOS {
                 case OpCode.BRK: {
                     this.init();
 
-                    _PCBQueue.head().state = State.TERMINATED;
+                    _CurrentProcess.state = State.TERMINATED;
 
                     this.isExecuting = false;
 
@@ -182,7 +182,7 @@ module TSOS {
                 }
                 
                 default: {
-                    _PCBQueue.head().state = State.TERMINATED;
+                    _CurrentProcess.state = State.TERMINATED;
                     this.isExecuting = false; // Crash the program
                 }
             }

@@ -83,11 +83,12 @@ var TSOS;
             else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 _CpuScheduler.schedule();
                 _CPU.cycle();
-                TSOS.Control.updatePCBRow(_PCBQueue.head()); // Update the visual
+                TSOS.Control.updatePCBRow(_CurrentProcess); // Update the visual
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
+            _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
         //
         // Initialize a process
@@ -113,6 +114,7 @@ var TSOS;
                 if (pcb.state === TSOS.State.READY) {
                     _CPU.init(); // Reset the CPU values before we run the application
                     pcb.state = TSOS.State.RUNNING;
+                    _CurrentProcess = pcb;
                     TSOS.Control.updatePCBRow(pcb);
                     // If we're not in step mode, proceed with execution normally
                     if (!TSOS.Control.stepMode) {

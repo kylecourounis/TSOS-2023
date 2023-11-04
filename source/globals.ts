@@ -42,9 +42,7 @@ var _CpuScheduler: TSOS.CpuScheduler;
 
 var _PCBList: TSOS.PCB[] = [];
 var _PCBQueue: TSOS.Queue = null;
-
-// pairs of limit registers for the memory for easy access
-var _BasesAndLimits: number[][] = [ [0x0000, 0x0100], [0x0100, 0x0200], [0x0200, 0x0300] ]; 
+var _CurrentProcess: TSOS.PCB = null;
 
 var _OSclock: number = 0;  // Page 23.
 
