@@ -35,6 +35,9 @@ var _Memory: TSOS.Memory;       // Utilize TypeScript's type annotation system t
 var _MemAccessor: TSOS.MemoryAccessor;  // Utilize TypeScript's type annotation system to ensure that _MemAccessor is an instance of the MemoryAccessor class.
 var _MemoryManager: TSOS.MemoryManager;  // Utilize TypeScript's type annotation system to ensure that _MemoryManager is an instance of the MemoryManager class.
 
+var _CpuDispatcher: TSOS.CpuDispatcher;
+var _CpuScheduler: TSOS.CpuScheduler;
+
 var _PCBList: TSOS.PCB[] = [];
 var _PCBQueue: TSOS.Queue = null;
 

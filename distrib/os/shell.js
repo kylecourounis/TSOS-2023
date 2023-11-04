@@ -417,10 +417,33 @@ var TSOS;
             // TODO
         }
         shellPS(args) {
-            // TODO
+            if (_PCBQueue.getSize() == 0) {
+                _StdOut.putText("There are no processes in memory");
+            }
+            for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                let pcb = _PCBQueue.q[i];
+                _StdOut.putText(`PID: ${pcb.pid}`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`State: ${pcb.state}`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Segment: ${pcb.segment}`);
+                _StdOut.advanceLine();
+                _StdOut.advanceLine();
+            }
         }
         shellKill(args) {
-            // TODO
+            if (args.length > 0) {
+                let pid = parseInt(args[0]);
+                for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                    if (pid == _PCBQueue.q[i].pid) {
+                        _PCBQueue.q[i].state = TSOS.State.TERMINATED;
+                        break;
+                    }
+                }
+            }
+            else {
+                _StdOut.putText("Please specify a PID.");
+            }
         }
         shellKillAll(args) {
             // TODO

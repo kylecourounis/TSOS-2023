@@ -27,6 +27,8 @@ var _CPU; // Utilize TypeScript's type annotation system to ensure that _CPU is 
 var _Memory; // Utilize TypeScript's type annotation system to ensure that _Memory is an instance of the Memory class.
 var _MemAccessor; // Utilize TypeScript's type annotation system to ensure that _MemAccessor is an instance of the MemoryAccessor class.
 var _MemoryManager; // Utilize TypeScript's type annotation system to ensure that _MemoryManager is an instance of the MemoryManager class.
+var _CpuDispatcher;
+var _CpuScheduler;
 var _PCBList = [];
 var _PCBQueue = null;
 // pairs of limit registers for the memory for easy access

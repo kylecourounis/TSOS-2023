@@ -21,6 +21,8 @@ var TSOS;
             _KernelInputQueue = new TSOS.Queue(); // Where device input lands before being processed out somewhere.
             _PCBQueue = new TSOS.Queue(); // The process control block queue
             _MemoryManager = new TSOS.MemoryManager(); // The memory manager
+            _CpuDispatcher = new TSOS.CpuDispatcher();
+            _CpuScheduler = new TSOS.CpuScheduler();
             // Initialize the console.
             _Console = new TSOS.Console(); // The command line interface / console I/O device.
             _Console.init();
@@ -80,8 +82,10 @@ var TSOS;
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             }
             else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
-                _CPU.cycle();
-                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
+                if (this.currentRunningProcess.state !== TSOS.State.TERMINATED) {
+                    _CPU.cycle();
+                    this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
+                }
                 TSOS.Control.updatePCBRow(this.currentRunningProcess); // Update the visual
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.

@@ -25,7 +25,10 @@ module TSOS {
 
             _PCBQueue = new Queue(); // The process control block queue
             _MemoryManager = new MemoryManager(); // The memory manager
-            
+
+            _CpuDispatcher = new CpuDispatcher();
+            _CpuScheduler = new CpuScheduler();
+
             // Initialize the console.
             _Console = new Console();             // The command line interface / console I/O device.
             _Console.init();
@@ -98,10 +101,12 @@ module TSOS {
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
-                _CPU.cycle();
+                if (this.currentRunningProcess.state !== State.TERMINATED) {
+                    _CPU.cycle();
 
-                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
-
+                    this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
+                }
+                
                 Control.updatePCBRow(this.currentRunningProcess); // Update the visual
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
@@ -173,7 +178,7 @@ module TSOS {
 
             _PCBQueue.clear();
         }
-
+        
         //
         // Interrupt Handling
         //
