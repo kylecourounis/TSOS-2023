@@ -128,10 +128,7 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    this.init();
-
                     _CurrentProcess.state = State.TERMINATED;
-                    
                     break;
                 }
         
@@ -150,9 +147,8 @@ module TSOS {
                         let offset = _MemAccessor.getMDR();
                         let newLoc = this.PC + offset; // The new location
 
-                        // The only space we're working with right now
-                        if (newLoc > 256) {
-                            newLoc -= 256;
+                        if (newLoc > 0x100) {
+                            newLoc -= 0x100;
                         }
 
                         this.PC = newLoc;
@@ -181,6 +177,7 @@ module TSOS {
                 
                 default: {
                     _CurrentProcess.state = State.TERMINATED;
+                    break;
                 }
             }
         }

@@ -112,7 +112,6 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BRK: {
-                    this.init();
                     _CurrentProcess.state = TSOS.State.TERMINATED;
                     break;
                 }
@@ -129,9 +128,8 @@ var TSOS;
                     if (this.Zflag == 0x00) {
                         let offset = _MemAccessor.getMDR();
                         let newLoc = this.PC + offset; // The new location
-                        // The only space we're working with right now
-                        if (newLoc > 256) {
-                            newLoc -= 256;
+                        if (newLoc > 0x100) {
+                            newLoc -= 0x100;
                         }
                         this.PC = newLoc;
                     }

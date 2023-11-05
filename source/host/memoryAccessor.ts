@@ -63,8 +63,8 @@ module TSOS {
          * Read from memory using the program counter.
          */
         public read() {
-            if (this.getMAR() >= _CurrentProcess.limit) {
-                _StdOut.putText(`Memory access violation while reading at ${this.getMAR()}!`);
+            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
                 return null;
             } else {
                 this.memory.read();
@@ -76,8 +76,8 @@ module TSOS {
          * Write to memory.
          */
         public write(value: number) {
-            if (this.getMAR() >= _CurrentProcess.limit) {
-                _StdOut.putText(`Memory access violation while writing at ${this.getMAR()}!`);
+            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
             } else {
                 this.memory.setMDR(value);
 
@@ -91,8 +91,8 @@ module TSOS {
          */
         public readImmediate(address: number) {
             if (_CurrentProcess != null) {
-                if (this.getMAR() >= _CurrentProcess.limit) {
-                    _StdOut.putText(`Memory access violation while reading at ${this.getMAR()}!`);
+                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                    _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
                 } else {
                     this.setMAR(address);
                     this.memory.read();
@@ -110,8 +110,8 @@ module TSOS {
          */
         public writeImmediate(address: number, value: number) {
             if (_CurrentProcess != null) {
-                if (this.getMAR() >= _CurrentProcess.limit) {
-                    _StdOut.putText(`Memory access violation while writing at ${this.getMAR()}!`);
+                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                    _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
                 } else {
                     this.setMAR(address);
                     this.memory.setMDR(value);

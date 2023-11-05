@@ -27,6 +27,7 @@ const NEXT_STEP_IRQ: number = 4;
 
 const DISPATCHER_IRQ: number = 5;
 
+const MEM_ACC_VIOLATION_IRQ: number = 6;
 
 //
 // Global Variables

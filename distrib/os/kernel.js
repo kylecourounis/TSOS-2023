@@ -189,6 +189,9 @@ var TSOS;
                 case DISPATCHER_IRQ:
                     TSOS.InterruptRoutines.triggerContextSwitch();
                     break;
+                case MEM_ACC_VIOLATION_IRQ:
+                    _StdOut.putText(`Memory access violation in segment ${params[0]} at ${params[1]}!`);
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }

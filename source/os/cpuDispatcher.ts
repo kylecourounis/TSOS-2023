@@ -30,8 +30,10 @@ module TSOS {
                 } else {
                     let terminated = _PCBQueue.dequeue();
                     
-                    _MemoryManager.deallocateMemory(headProcess);
+                    _MemoryManager.deallocateMemory(terminated);
                 }
+            } else {
+                _CPU.init();
             }
         }
     }

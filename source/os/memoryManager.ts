@@ -34,7 +34,7 @@ module TSOS {
                 pcb.segment = segment; // Just for easy reference
 
                 pcb.base = segment * 0x100;
-                pcb.limit = (segment * 0x100) + 0x100;
+                pcb.limit = (segment * 0x100) + 0x100 - 1;
 
                 return true;
             } else {
@@ -47,6 +47,7 @@ module TSOS {
                 let pcb: PCB = _PCBQueue.q[i];
 
                 if (pcb.state === State.TERMINATED) {
+                    _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
                     this.availableSegments[pcb.segment] = true;
                     _PCBQueue.q.splice(i, 1); // forcefully remove it
                 }
@@ -55,6 +56,7 @@ module TSOS {
 
         public deallocateMemory(pcb: PCB) {
             if (pcb.state === State.TERMINATED) {
+                _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
                 this.availableSegments[pcb.segment] = true;
             }
         }

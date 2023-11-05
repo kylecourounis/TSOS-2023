@@ -25,7 +25,7 @@ var TSOS;
                 }
                 pcb.segment = segment; // Just for easy reference
                 pcb.base = segment * 0x100;
-                pcb.limit = (segment * 0x100) + 0x100;
+                pcb.limit = (segment * 0x100) + 0x100 - 1;
                 return true;
             }
             else {
@@ -36,6 +36,7 @@ var TSOS;
             for (let i = 0; i < _PCBQueue.getSize(); i++) {
                 let pcb = _PCBQueue.q[i];
                 if (pcb.state === TSOS.State.TERMINATED) {
+                    _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
                     this.availableSegments[pcb.segment] = true;
                     _PCBQueue.q.splice(i, 1); // forcefully remove it
                 }
@@ -43,6 +44,7 @@ var TSOS;
         }
         deallocateMemory(pcb) {
             if (pcb.state === TSOS.State.TERMINATED) {
+                _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
                 this.availableSegments[pcb.segment] = true;
             }
         }
