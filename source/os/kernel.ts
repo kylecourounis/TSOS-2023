@@ -10,6 +10,8 @@
 module TSOS {
 
     export class Kernel {
+        public singleRun: boolean;
+
         //
         // OS Startup and Shutdown Routines
         //
@@ -99,13 +101,18 @@ module TSOS {
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
-                _CpuScheduler.schedule();
+                // This flag is to determine whether run or runall was used.
+                if (!this.singleRun) {
+                    _CpuScheduler.schedule();
+                }
 
                 _CPU.cycle();
 
+                _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
                 Control.updatePCBRow(_CurrentProcess); // Update the visual
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
+                _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
             }
             
             _MemoryManager.deallocateTerminatedProcesses(); // this is a good check

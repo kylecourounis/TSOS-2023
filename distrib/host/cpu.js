@@ -114,7 +114,6 @@ var TSOS;
                 case TSOS.OpCode.BRK: {
                     this.init();
                     _CurrentProcess.state = TSOS.State.TERMINATED;
-                    this.isExecuting = false;
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -155,7 +154,6 @@ var TSOS;
                 }
                 default: {
                     _CurrentProcess.state = TSOS.State.TERMINATED;
-                    this.isExecuting = false; // Crash the program
                 }
             }
         }

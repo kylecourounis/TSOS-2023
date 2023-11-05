@@ -24,12 +24,6 @@ var TSOS;
             this.memory = memory;
         }
         /**
-         * Gets the physical address.
-         */
-        getPhysicalAddress(virtualAddr, baseAddr) {
-            return virtualAddr + baseAddr;
-        }
-        /**
          * Returns the value of the MAR.
          * @returns The MAR
          */

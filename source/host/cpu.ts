@@ -131,9 +131,7 @@ module TSOS {
                     this.init();
 
                     _CurrentProcess.state = State.TERMINATED;
-
-                    this.isExecuting = false;
-
+                    
                     break;
                 }
         
@@ -183,7 +181,6 @@ module TSOS {
                 
                 default: {
                     _CurrentProcess.state = State.TERMINATED;
-                    this.isExecuting = false; // Crash the program
                 }
             }
         }

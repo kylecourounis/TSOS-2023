@@ -392,6 +392,7 @@ var TSOS;
         shellRun(args) {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
+                _Kernel.singleRun = true; // set this flag to let the program know we only want to run one program.
                 _Kernel.krnRunProcess(pid);
             }
             else {
@@ -414,11 +415,10 @@ var TSOS;
             _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
         }
         shellRunAll(args) {
-            for (let i in _PCBQueue.q) {
-                let pcb = _PCBQueue.q[i];
-                if (pcb.state === TSOS.State.READY) {
-                    _Kernel.krnRunProcess(pcb.pid);
-                }
+            let pcb = _PCBQueue.head();
+            _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
+            if (pcb.state === TSOS.State.READY) {
+                _Kernel.krnRunProcess(pcb.pid);
             }
         }
         shellPS(args) {

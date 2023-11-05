@@ -10,7 +10,7 @@
         public schedule() {
             if (this.cycleCount == this.quantum) {
                 // If there's only one program, we can just execute that normally.
-                if (_PCBQueue.getSize() > 1) {
+                if (_PCBQueue.getSize() > 0) {
                     _KernelInterruptQueue.enqueue(new Interrupt(DISPATCHER_IRQ, []));
                 }
                 

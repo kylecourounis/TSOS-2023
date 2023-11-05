@@ -507,6 +507,7 @@ module TSOS {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
 
+                _Kernel.singleRun = true; // set this flag to let the program know we only want to run one program.
                 _Kernel.krnRunProcess(pid);
             } else {
                 _StdOut.putText("Error: please specify a PID");
@@ -532,12 +533,12 @@ module TSOS {
         }
 
         public shellRunAll(args: string[]) {
-            for (let i in _PCBQueue.q) {
-                let pcb: PCB = _PCBQueue.q[i];
+            let pcb: PCB = _PCBQueue.head();
 
-                if (pcb.state === State.READY) {
-                    _Kernel.krnRunProcess(pcb.pid);
-                }
+            _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
+
+            if (pcb.state === State.READY) {
+                _Kernel.krnRunProcess(pcb.pid);
             }
         }
 
