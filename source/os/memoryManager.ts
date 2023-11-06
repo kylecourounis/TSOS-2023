@@ -1,7 +1,5 @@
 module TSOS {
     export class MemoryManager {
-        // TODO for Project 3
-
         public availableSegments: boolean[];
 
         constructor() {
@@ -23,6 +21,7 @@ module TSOS {
 
                         this.availableSegments[i] = false;
 
+                        
                         break;
                     }
                 }
@@ -31,7 +30,7 @@ module TSOS {
                     _MemAccessor.writeImmediate(segment * 0x100 + i, parseInt(program[i], 16));
                 }
 
-                pcb.segment = segment; // Just for easy reference
+                pcb.segment = segment;
 
                 pcb.base = segment * 0x100;
                 pcb.limit = (segment * 0x100) + 0x100 - 1;

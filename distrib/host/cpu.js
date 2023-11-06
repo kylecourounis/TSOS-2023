@@ -113,6 +113,8 @@ var TSOS;
                 }
                 case TSOS.OpCode.BRK: {
                     _CurrentProcess.state = TSOS.State.TERMINATED;
+                    this.isExecuting = false;
+                    _CpuScheduler.schedule();
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -152,6 +154,8 @@ var TSOS;
                 }
                 default: {
                     _CurrentProcess.state = TSOS.State.TERMINATED;
+                    _Kernel.krnTrace("Invalid OP Code!");
+                    break;
                 }
             }
         }

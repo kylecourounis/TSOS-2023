@@ -129,6 +129,11 @@ module TSOS {
         
                 case OpCode.BRK: {
                     _CurrentProcess.state = State.TERMINATED;
+
+                    this.isExecuting = false;
+
+                    _CpuScheduler.schedule();
+
                     break;
                 }
         
@@ -177,6 +182,9 @@ module TSOS {
                 
                 default: {
                     _CurrentProcess.state = State.TERMINATED;
+
+                    _Kernel.krnTrace("Invalid OP Code!");
+                    
                     break;
                 }
             }

@@ -415,10 +415,15 @@ var TSOS;
             _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
         }
         shellRunAll(args) {
-            let pcb = _PCBQueue.head();
-            _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
-            if (pcb.state === TSOS.State.READY) {
-                _Kernel.krnRunProcess(pcb.pid);
+            if (_PCBQueue.getSize() > 0) {
+                let pcb = _PCBQueue.head();
+                _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
+                if (pcb.state === TSOS.State.READY) {
+                    _Kernel.krnRunProcess(pcb.pid);
+                }
+            }
+            else {
+                _StdOut.putText("There are no programs in the queue.");
             }
         }
         shellPS(args) {
@@ -441,7 +446,7 @@ var TSOS;
                 let pid = parseInt(args[0]);
                 for (let i = 0; i < _PCBQueue.getSize(); i++) {
                     if (pid == _PCBQueue.q[i].pid) {
-                        _PCBQueue.q[i].state = TSOS.State.TERMINATED;
+                        _Kernel.krnTerminateProcess(_PCBQueue.q[i]);
                         break;
                     }
                 }
@@ -451,12 +456,14 @@ var TSOS;
             }
         }
         shellKillAll(args) {
-            // TODO
+            _Kernel.krnKillAllProcesses();
         }
         shellQuantum(args) {
             if (args.length > 0) {
+                let oldQuantum = _CpuScheduler.quantum;
                 let newQuantum = parseInt(args[0]);
                 _CpuScheduler.quantum = newQuantum;
+                _StdOut.putText(`Quantum changed from ${oldQuantum} to ${newQuantum}.`);
             }
             else {
                 _StdOut.putText("Please specify a new quantum.");

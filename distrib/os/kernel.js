@@ -81,7 +81,7 @@ var TSOS;
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             }
-            else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+            else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed. 
                 // This flag is to determine whether run or runall was used.
                 if (!this.singleRun) {
                     _CpuScheduler.schedule();
@@ -138,6 +138,15 @@ var TSOS;
         krnTerminateProcess(pcb) {
             pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
             TSOS.Control.updatePCBRow(pcb);
+            _MemoryManager.deallocateMemory(pcb);
+        }
+        krnKillAllProcesses() {
+            _CPU.isExecuting = false;
+            for (let i in _PCBQueue.q) {
+                let pcb = _PCBQueue.q[i];
+                this.krnTerminateProcess(pcb);
+            }
+            _CPU.init();
         }
         krnClearMemory() {
             if (_CPU.isExecuting) {

@@ -1,7 +1,6 @@
 var TSOS;
 (function (TSOS) {
     class MemoryManager {
-        // TODO for Project 3
         availableSegments;
         constructor() {
             this.availableSegments = [true, true, true];
@@ -23,7 +22,7 @@ var TSOS;
                 for (let i = 0; i < program.length; i++) {
                     _MemAccessor.writeImmediate(segment * 0x100 + i, parseInt(program[i], 16));
                 }
-                pcb.segment = segment; // Just for easy reference
+                pcb.segment = segment;
                 pcb.base = segment * 0x100;
                 pcb.limit = (segment * 0x100) + 0x100 - 1;
                 return true;

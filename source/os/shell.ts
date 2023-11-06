@@ -533,12 +533,16 @@ module TSOS {
         }
 
         public shellRunAll(args: string[]) {
-            let pcb: PCB = _PCBQueue.head();
+            if (_PCBQueue.getSize() > 0) {
+                let pcb: PCB = _PCBQueue.head();
 
-            _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
-
-            if (pcb.state === State.READY) {
-                _Kernel.krnRunProcess(pcb.pid);
+                _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
+    
+                if (pcb.state === State.READY) {
+                    _Kernel.krnRunProcess(pcb.pid);
+                }
+            } else {
+                _StdOut.putText("There are no programs in the queue.");
             }
         }
 
@@ -566,7 +570,7 @@ module TSOS {
 
                 for (let i = 0; i < _PCBQueue.getSize(); i++) {
                     if (pid == _PCBQueue.q[i].pid) {
-                        _PCBQueue.q[i].state = State.TERMINATED;
+                        _Kernel.krnTerminateProcess(_PCBQueue.q[i]);
                         break;
                     }
                 }
@@ -576,13 +580,17 @@ module TSOS {
         }
 
         public shellKillAll(args: string[]) {
-            // TODO
+            _Kernel.krnKillAllProcesses();
         }
         
         public shellQuantum(args: string[]) {
             if (args.length > 0) {
+                let oldQuantum = _CpuScheduler.quantum;
                 let newQuantum = parseInt(args[0]);
+
                 _CpuScheduler.quantum = newQuantum;
+
+                _StdOut.putText(`Quantum changed from ${oldQuantum} to ${newQuantum}.`);
             } else {
                 _StdOut.putText("Please specify a new quantum.");
             }

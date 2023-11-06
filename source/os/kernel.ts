@@ -93,14 +93,14 @@ module TSOS {
                This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
                that it has to look for interrupts and process them if it finds any.                          
             */
-
+           
             // Check for an interrupt, if there are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
                 // TODO (maybe): Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
-            } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+            } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed. 
                 // This flag is to determine whether run or runall was used.
                 if (!this.singleRun) {
                     _CpuScheduler.schedule();
@@ -171,6 +171,19 @@ module TSOS {
             pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
 
             Control.updatePCBRow(pcb);
+
+            _MemoryManager.deallocateMemory(pcb);
+        }
+
+        public krnKillAllProcesses() {
+            _CPU.isExecuting = false;
+
+            for (let i in _PCBQueue.q) {
+                let pcb = _PCBQueue.q[i];
+                this.krnTerminateProcess(pcb);
+            }
+
+            _CPU.init();
         }
 
         public krnClearMemory() {
