@@ -94,7 +94,7 @@ var TSOS;
                 this.krnTrace("Idle");
                 _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
             }
-            _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
+            // _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
         //
         // Initialize a process
@@ -104,6 +104,7 @@ var TSOS;
             pcb.state = TSOS.State.READY;
             let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
             if (success) {
+                TSOS.PCB.pidStore++; // Increment PID counter only if we successfully create it
                 _PCBList.push(pcb); // This is what we're actually using for the moment
                 _PCBQueue.enqueue(pcb); // This is WIP
                 _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
@@ -203,7 +204,7 @@ var TSOS;
                     this.krnTerminateProcess(_CurrentProcess);
                     break;
                 case INVALID_OP_CODE_IRQ:
-                    _StdOut.putText(`Invalid opcode: ${TSOS.Utils.toHex(params[0], 2)}!`);
+                    _StdOut.putText(`Invalid opcode: ${TSOS.Utils.toHex(params[1], 2)} at ${TSOS.Utils.toHex(params[0], 4)}`);
                     this.krnTerminateProcess(_CurrentProcess);
                     break;
                 default:

@@ -115,7 +115,7 @@ module TSOS {
                 _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
             }
             
-            _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
+            // _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
 
         //
@@ -129,6 +129,8 @@ module TSOS {
             let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
 
             if (success) {
+                PCB.pidStore++; // Increment PID counter only if we successfully create it
+
                 _PCBList.push(pcb); // This is what we're actually using for the moment
                 _PCBQueue.enqueue(pcb); // This is WIP
     
@@ -247,7 +249,7 @@ module TSOS {
 
                     break;
                 case INVALID_OP_CODE_IRQ:
-                    _StdOut.putText(`Invalid opcode: ${Utils.toHex(params[0], 2)}!`);
+                    _StdOut.putText(`Invalid opcode: ${Utils.toHex(params[1], 2)} at ${Utils.toHex(params[0], 4)}`);
                     
                     this.krnTerminateProcess(_CurrentProcess);
 

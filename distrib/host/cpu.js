@@ -20,6 +20,7 @@ var TSOS;
         Yreg;
         Zflag;
         isExecuting;
+        breakFlag;
         constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
             this.PC = PC;
             this.IR = IR;
@@ -112,9 +113,9 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BRK: {
-                    _CurrentProcess.state = TSOS.State.TERMINATED;
-                    this.isExecuting = false;
-                    _CpuScheduler.schedule();
+                    // this.isExecuting = false;
+                    this.breakFlag = true;
+                    console.log(JSON.stringify(_CurrentProcess));
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -153,19 +154,22 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(INVALID_OP_CODE_IRQ, [this.IR]));
-                    _Kernel.krnTrace("Invalid OP Code!");
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(INVALID_OP_CODE_IRQ, [_MemAccessor.getMAR(), this.IR]));
+                    _Kernel.krnTrace(`Invalid opcode: ${TSOS.Utils.toHex(this.IR, 2)} at ${TSOS.Utils.toHex(_MemAccessor.getMAR(), 4)}`);
                     break;
                 }
             }
         }
         cycle() {
-            _Kernel.krnTrace('CPU cycle');
-            // TODO: Accumulate CPU usage and profiling statistics here.
-            this.fetch();
-            let decodeCycles = TSOS.DecodeCycles.get(this.IR);
-            this.decode(decodeCycles);
-            this.execute();
+            if (_CurrentProcess.state === TSOS.State.RUNNING) {
+                _CPU.breakFlag = false;
+                _Kernel.krnTrace('CPU cycle');
+                // TODO: Accumulate CPU usage and profiling statistics here.
+                this.fetch();
+                let decodeCycles = TSOS.DecodeCycles.get(this.IR);
+                this.decode(decodeCycles);
+                this.execute();
+            }
         }
         setState(pc, ir, acc, xReg, yReg, zFlag) {
             this.PC = pc;

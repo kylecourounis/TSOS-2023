@@ -14,6 +14,7 @@
 module TSOS {
 
     export class Cpu {
+        public breakFlag: boolean;
 
         constructor(public PC: number = 0,
                     public IR: number = 0,
@@ -42,7 +43,7 @@ module TSOS {
             if (this.PC > 0) {
                 this.PC++;
             }
-    
+
             _MemAccessor.setMAR(this.PC);
             this.IR = _MemAccessor.read();
         }
@@ -128,11 +129,11 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    _CurrentProcess.state = State.TERMINATED;
+                    // this.isExecuting = false;
 
-                    this.isExecuting = false;
+                    this.breakFlag = true;
 
-                    _CpuScheduler.schedule();
+                    console.log(JSON.stringify(_CurrentProcess));
 
                     break;
                 }
@@ -180,10 +181,10 @@ module TSOS {
                     break;
                 }
                 
-                default: {                    
-                    _KernelInterruptQueue.enqueue(new Interrupt(INVALID_OP_CODE_IRQ, [this.IR]));
+                default: {
+                    _KernelInterruptQueue.enqueue(new Interrupt(INVALID_OP_CODE_IRQ, [_MemAccessor.getMAR(), this.IR]));
 
-                    _Kernel.krnTrace("Invalid OP Code!");
+                    _Kernel.krnTrace(`Invalid opcode: ${Utils.toHex(this.IR, 2)} at ${Utils.toHex(_MemAccessor.getMAR(), 4)}`);
                     
                     break;
                 }
@@ -191,15 +192,19 @@ module TSOS {
         }
 
         public cycle(): void {
-            _Kernel.krnTrace('CPU cycle');
-            // TODO: Accumulate CPU usage and profiling statistics here.
-            
-            this.fetch();
-
-            let decodeCycles = DecodeCycles.get(this.IR);
-            this.decode(decodeCycles);
-
-            this.execute();
+            if (_CurrentProcess.state === State.RUNNING) {
+                _CPU.breakFlag = false;
+                
+                _Kernel.krnTrace('CPU cycle');
+                // TODO: Accumulate CPU usage and profiling statistics here.
+                
+                this.fetch();
+    
+                let decodeCycles = DecodeCycles.get(this.IR);
+                this.decode(decodeCycles);
+    
+                this.execute();
+            }
         }
 
         public setState(pc: number, ir: number, acc: number, xReg: number, yReg: number, zFlag: number): void {
