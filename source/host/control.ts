@@ -260,6 +260,7 @@ module TSOS {
             row.cells[5].innerHTML = Utils.toHex(pcb.xReg, 2);
             row.cells[6].innerHTML = Utils.toHex(pcb.yReg, 2);
             row.cells[7].innerHTML = Utils.toHex(pcb.zFlag, 2);
+            row.cells[8].innerHTML = Utils.toHex(pcb.segment, 2);
         }
     }
 }

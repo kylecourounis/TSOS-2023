@@ -153,7 +153,7 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _CurrentProcess.state = TSOS.State.TERMINATED;
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(INVALID_OP_CODE_IRQ, [this.IR]));
                     _Kernel.krnTrace("Invalid OP Code!");
                     break;
                 }

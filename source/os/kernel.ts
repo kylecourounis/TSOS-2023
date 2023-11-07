@@ -241,7 +241,16 @@ module TSOS {
                     InterruptRoutines.triggerContextSwitch();
                     break;
                 case MEM_ACC_VIOLATION_IRQ:
-                    _StdOut.putText(`Memory access violation in segment ${params[0]} at ${params[1]}!`);
+                    _StdOut.putText(`Memory access violation in segment ${params[0]} at ${Utils.toHex(params[1], 4)}!`);
+                    
+                    this.krnTerminateProcess(_CurrentProcess);
+
+                    break;
+                case INVALID_OP_CODE_IRQ:
+                    _StdOut.putText(`Invalid opcode: ${Utils.toHex(params[0], 2)}!`);
+                    
+                    this.krnTerminateProcess(_CurrentProcess);
+
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

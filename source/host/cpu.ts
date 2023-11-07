@@ -180,8 +180,8 @@ module TSOS {
                     break;
                 }
                 
-                default: {
-                    _CurrentProcess.state = State.TERMINATED;
+                default: {                    
+                    _KernelInterruptQueue.enqueue(new Interrupt(INVALID_OP_CODE_IRQ, [this.IR]));
 
                     _Kernel.krnTrace("Invalid OP Code!");
                     

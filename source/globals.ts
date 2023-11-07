@@ -29,6 +29,10 @@ const DISPATCHER_IRQ: number = 5;
 
 const MEM_ACC_VIOLATION_IRQ: number = 6;
 
+const INVALID_OP_CODE_IRQ: number = 7;
+
+
+
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
