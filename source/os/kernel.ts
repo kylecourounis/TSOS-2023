@@ -10,7 +10,7 @@
 module TSOS {
 
     export class Kernel {
-        public currentRunningProcess: PCB;
+        public singleRun: boolean;
 
         //
         // OS Startup and Shutdown Routines
@@ -25,7 +25,10 @@ module TSOS {
 
             _PCBQueue = new Queue(); // The process control block queue
             _MemoryManager = new MemoryManager(); // The memory manager
-            
+
+            _CpuScheduler = new CpuScheduler();
+            _CpuDispatcher = new CpuDispatcher();
+
             // Initialize the console.
             _Console = new Console();             // The command line interface / console I/O device.
             _Console.init();
@@ -90,46 +93,53 @@ module TSOS {
                This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
                that it has to look for interrupts and process them if it finds any.                          
             */
-
+           
             // Check for an interrupt, if there are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
                 // TODO (maybe): Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
-            } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+            } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed. 
+                // This flag is to determine whether run or runall was used.
+                if (!this.singleRun) {
+                    _CpuScheduler.schedule();
+                }
+
                 _CPU.cycle();
 
-                this.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag); // Update the PCB values for the table
-
-                Control.updatePCBRow(this.currentRunningProcess); // Update the visual
+                _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+                Control.updatePCBRow(_CurrentProcess); // Update the visual
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
+                _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
             }
+            
+            _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
 
         //
         // Initialize a process
         //
-        public krnInitProcess(program: string[]) {
-            _Memory.clearMemory(0x00, 256);
-
-            for (let i = 0; i < program.length; i++) {
-                _MemAccessor.writeImmediate(i, parseInt(program[i], 16));
-            }
-            
+        public krnInitProcess(program: string[], baseAddr: number = 0) {
             let pcb = new PCB();
 
             pcb.state = State.READY;
 
-            _PCBList.push(pcb); // This is what we're actually using for the moment
-            _PCBQueue.enqueue(pcb); // This is WIP
+            let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
 
-            Control.createProcessRow(pcb);
-
-            _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
-
-            Control.updateMemoryView();
+            if (success) {
+                _PCBList.push(pcb); // This is what we're actually using for the moment
+                _PCBQueue.enqueue(pcb); // This is WIP
+    
+                _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
+    
+                Control.createProcessRow(pcb);
+    
+                Control.updateMemoryView();
+            } else {
+                _StdOut.putText("You cannot load any more programs - memory is full.");
+            }
         }
 
         public krnRunProcess(pid: number) {
@@ -140,8 +150,9 @@ module TSOS {
                     _CPU.init(); // Reset the CPU values before we run the application
                     
                     pcb.state = State.RUNNING;
-                    this.currentRunningProcess = pcb;
     
+                    _CurrentProcess = pcb;
+
                     Control.updatePCBRow(pcb);
     
                     // If we're not in step mode, proceed with execution normally
@@ -161,9 +172,30 @@ module TSOS {
 
             Control.updatePCBRow(pcb);
 
-            this.currentRunningProcess = null; // set the running process to null so we can check it
+            _MemoryManager.deallocateMemory(pcb);
         }
 
+        public krnKillAllProcesses() {
+            _CPU.isExecuting = false;
+
+            for (let i in _PCBQueue.q) {
+                let pcb = _PCBQueue.q[i];
+                this.krnTerminateProcess(pcb);
+            }
+
+            _CPU.init();
+        }
+
+        public krnClearMemory() {
+            if (_CPU.isExecuting) {
+                _StdOut.putText("Unable to clear memory while the CPU is executing!");
+            } else {
+                _Memory.clearMemory(0, Memory.SIZE); // clears the entire memory
+
+                _PCBQueue.clear();
+            }
+        }
+        
         //
         // Interrupt Handling
         //
@@ -204,6 +236,21 @@ module TSOS {
                     break;
                 case NEXT_STEP_IRQ:
                     InterruptRoutines.step();
+                    break;
+                case DISPATCHER_IRQ:
+                    InterruptRoutines.triggerContextSwitch();
+                    break;
+                case MEM_ACC_VIOLATION_IRQ:
+                    _StdOut.putText(`Memory access violation in segment ${params[0]} at ${Utils.toHex(params[1], 4)}!`);
+                    
+                    this.krnTerminateProcess(_CurrentProcess);
+
+                    break;
+                case INVALID_OP_CODE_IRQ:
+                    _StdOut.putText(`Invalid opcode: ${Utils.toHex(params[0], 2)}!`);
+                    
+                    this.krnTerminateProcess(_CurrentProcess);
+
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

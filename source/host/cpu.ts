@@ -128,11 +128,11 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    this.init();
-
-                    _Kernel.currentRunningProcess.state = State.TERMINATED;
+                    _CurrentProcess.state = State.TERMINATED;
 
                     this.isExecuting = false;
+
+                    _CpuScheduler.schedule();
 
                     break;
                 }
@@ -152,9 +152,8 @@ module TSOS {
                         let offset = _MemAccessor.getMDR();
                         let newLoc = this.PC + offset; // The new location
 
-                        // The only space we're working with right now
-                        if (newLoc > 256) {
-                            newLoc -= 256;
+                        if (newLoc > 0x100) {
+                            newLoc -= 0x100;
                         }
 
                         this.PC = newLoc;
@@ -181,9 +180,12 @@ module TSOS {
                     break;
                 }
                 
-                default: {
-                    _Kernel.currentRunningProcess.state = State.TERMINATED;
-                    this.isExecuting = false; // Crash the program
+                default: {                    
+                    _KernelInterruptQueue.enqueue(new Interrupt(INVALID_OP_CODE_IRQ, [this.IR]));
+
+                    _Kernel.krnTrace("Invalid OP Code!");
+                    
+                    break;
                 }
             }
         }
@@ -198,6 +200,15 @@ module TSOS {
             this.decode(decodeCycles);
 
             this.execute();
+        }
+
+        public setState(pc: number, ir: number, acc: number, xReg: number, yReg: number, zFlag: number): void {
+            this.PC = pc;
+            this.IR = ir;
+            this.Acc = acc;
+            this.Xreg = xReg;
+            this.Yreg = yReg;
+            this.Zflag = zFlag;
         }
     }
 }

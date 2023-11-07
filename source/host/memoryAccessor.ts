@@ -48,7 +48,7 @@ module TSOS {
          * @param address The memory address to put in the MAR.
          */
         public setMAR(address: number) {
-            this.memory.setMAR(address);
+            this.memory.setMAR(_CurrentProcess.base + address);
         }
 
         /**
@@ -63,17 +63,26 @@ module TSOS {
          * Read from memory using the program counter.
          */
         public read() {
-            this.memory.read();
-            return this.memory.getMDR();
+            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
+                return null;
+            } else {
+                this.memory.read();
+                return this.memory.getMDR();
+            }
         }
 
         /**
          * Write to memory.
          */
         public write(value: number) {
-            this.memory.setMDR(value);
+            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
+            } else {
+                this.memory.setMDR(value);
 
-            this.memory.write();
+                this.memory.write();
+            }
         }
 
         /**
@@ -81,8 +90,17 @@ module TSOS {
          * @param address The address at which to read the MDR from.
          */
         public readImmediate(address: number) {
-            this.memory.setMAR(address);
-            this.memory.read();
+            if (_CurrentProcess != null) {
+                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                    _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
+                } else {
+                    this.setMAR(address);
+                    this.memory.read();
+                }
+            } else {
+                this.memory.setMAR(address);
+                this.memory.read();
+            }
         }
 
         /**
@@ -91,10 +109,21 @@ module TSOS {
          * @param value The value to place in the MDR.
          */
         public writeImmediate(address: number, value: number) {
-            this.memory.setMAR(address);
-            this.memory.setMDR(value);
-            
-            this.memory.write();
+            if (_CurrentProcess != null) {
+                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                    _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
+                } else {
+                    this.setMAR(address);
+                    this.memory.setMDR(value);
+                    
+                    this.memory.write();
+                }
+            } else {
+                this.memory.setMAR(address);
+                this.memory.setMDR(value);
+                
+                this.memory.write();
+            }
         }
 
         /**
@@ -102,7 +131,7 @@ module TSOS {
          * @param lob Low order byte
          */
         public setLowOrderByte(lob: number) {
-            this.memory.setMAR(lob);
+            this.setMAR(lob);
         }
 
         /**
@@ -113,7 +142,7 @@ module TSOS {
             let lob = MemoryAccessor.flipEndianess(this.decodedByte1);
             let val = MemoryAccessor.flipEndianess(lob | hob);
             
-            this.memory.setMAR(val);
+            this.setMAR(val);
         }
 
         /**

@@ -70,8 +70,24 @@ var TSOS;
             // bsod
             sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
-            // ps  - list the running processes and their IDs
-            // kill <id> - kills the specified process id.
+            // clearmem
+            sc = new TSOS.ShellCommand(this.shellClearMemory, "clearmem", "- Clears the entire memory.");
+            this.commandList[this.commandList.length] = sc;
+            // runall
+            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "- Runs up to three programs in memory.");
+            this.commandList[this.commandList.length] = sc;
+            // ps
+            sc = new TSOS.ShellCommand(this.shellPS, "ps", "- Displays PIDs and statuses.");
+            this.commandList[this.commandList.length] = sc;
+            // kill
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<pid> - Kills the process with the specified ID.");
+            this.commandList[this.commandList.length] = sc;
+            // killall
+            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "- Kills all running processes.");
+            this.commandList[this.commandList.length] = sc;
+            // quantum
+            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<value> - Sets the Round Robin quantum.");
+            this.commandList[this.commandList.length] = sc;
             // Display the initial prompt.
             this.putPrompt();
         }
@@ -262,6 +278,24 @@ var TSOS;
                     case "bsod":
                         _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
+                    case "clearmem":
+                        _StdOut.putText("Clears memory (this has some guardrails for running programs).");
+                        break;
+                    case "runall":
+                        _StdOut.putText("Runs up to three programs in memory.");
+                        break;
+                    case "ps":
+                        _StdOut.putText("Displays all PIDs and process states to the user.");
+                        break;
+                    case "kill":
+                        _StdOut.putText("Kills the process with the specified ID.");
+                        break;
+                    case "killall":
+                        _StdOut.putText("Kills all the processes.");
+                        break;
+                    case "quantum":
+                        _StdOut.putText("Sets the Round Robin quantum.");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -358,6 +392,7 @@ var TSOS;
         shellRun(args) {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
+                _Kernel.singleRun = true; // set this flag to let the program know we only want to run one program.
                 _Kernel.krnRunProcess(pid);
             }
             else {
@@ -374,6 +409,64 @@ var TSOS;
             }
             else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
+        }
+        shellClearMemory(args) {
+            _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
+        }
+        shellRunAll(args) {
+            if (_PCBQueue.getSize() > 0) {
+                let pcb = _PCBQueue.head();
+                _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
+                if (pcb.state === TSOS.State.READY) {
+                    _Kernel.krnRunProcess(pcb.pid);
+                }
+            }
+            else {
+                _StdOut.putText("There are no programs in the queue.");
+            }
+        }
+        shellPS(args) {
+            if (_PCBList.length == 0) {
+                _StdOut.putText("No processes have been run.");
+            }
+            for (let i = 0; i < _PCBList.length; i++) {
+                let pcb = _PCBList[i];
+                _StdOut.putText(`PID: ${pcb.pid}`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`State: ${pcb.state}`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Segment: ${pcb.segment}`);
+                _StdOut.advanceLine();
+                _StdOut.advanceLine();
+            }
+        }
+        shellKill(args) {
+            if (args.length > 0) {
+                let pid = parseInt(args[0]);
+                for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                    if (pid == _PCBQueue.q[i].pid) {
+                        _Kernel.krnTerminateProcess(_PCBQueue.q[i]);
+                        break;
+                    }
+                }
+            }
+            else {
+                _StdOut.putText("Please specify a PID.");
+            }
+        }
+        shellKillAll(args) {
+            _Kernel.krnKillAllProcesses();
+        }
+        shellQuantum(args) {
+            if (args.length > 0) {
+                let oldQuantum = _CpuScheduler.quantum;
+                let newQuantum = parseInt(args[0]);
+                _CpuScheduler.quantum = newQuantum;
+                _StdOut.putText(`Quantum changed from ${oldQuantum} to ${newQuantum}.`);
+            }
+            else {
+                _StdOut.putText("Please specify a new quantum.");
             }
         }
     }

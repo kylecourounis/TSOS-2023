@@ -8,10 +8,13 @@ var TSOS;
             // Increment the hardware (host) clock.
             _OSclock++;
             _CPU.cycle();
-            _Kernel.currentRunningProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
-            TSOS.Control.updatePCBRow(_Kernel.currentRunningProcess);
+            _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+            TSOS.Control.updatePCBRow(_CurrentProcess);
             TSOS.Control.updateMemoryView();
             TSOS.Control.updateCPUView();
+        }
+        static triggerContextSwitch() {
+            _CpuDispatcher.doContextSwitch();
         }
     }
     TSOS.InterruptRoutines = InterruptRoutines;

@@ -112,9 +112,9 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BRK: {
-                    this.init();
-                    _Kernel.currentRunningProcess.state = TSOS.State.TERMINATED;
+                    _CurrentProcess.state = TSOS.State.TERMINATED;
                     this.isExecuting = false;
+                    _CpuScheduler.schedule();
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -130,9 +130,8 @@ var TSOS;
                     if (this.Zflag == 0x00) {
                         let offset = _MemAccessor.getMDR();
                         let newLoc = this.PC + offset; // The new location
-                        // The only space we're working with right now
-                        if (newLoc > 256) {
-                            newLoc -= 256;
+                        if (newLoc > 0x100) {
+                            newLoc -= 0x100;
                         }
                         this.PC = newLoc;
                     }
@@ -154,8 +153,9 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _Kernel.currentRunningProcess.state = TSOS.State.TERMINATED;
-                    this.isExecuting = false; // Crash the program
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(INVALID_OP_CODE_IRQ, [this.IR]));
+                    _Kernel.krnTrace("Invalid OP Code!");
+                    break;
                 }
             }
         }
@@ -166,6 +166,14 @@ var TSOS;
             let decodeCycles = TSOS.DecodeCycles.get(this.IR);
             this.decode(decodeCycles);
             this.execute();
+        }
+        setState(pc, ir, acc, xReg, yReg, zFlag) {
+            this.PC = pc;
+            this.IR = ir;
+            this.Acc = acc;
+            this.Xreg = xReg;
+            this.Yreg = yReg;
+            this.Zflag = zFlag;
         }
     }
     TSOS.Cpu = Cpu;

@@ -122,8 +122,42 @@ module TSOS {
                                   "- Triggers the trap error function.");
             this.commandList[this.commandList.length] = sc;
 
-            // ps  - list the running processes and their IDs
-            // kill <id> - kills the specified process id.
+            // clearmem
+            sc = new ShellCommand(this.shellClearMemory,
+                                  "clearmem",
+                                  "- Clears the entire memory.");
+            this.commandList[this.commandList.length] = sc;
+
+
+            // runall
+            sc = new ShellCommand(this.shellRunAll,
+                                  "runall",
+                                  "- Runs up to three programs in memory.");
+            this.commandList[this.commandList.length] = sc;
+
+            // ps
+            sc = new ShellCommand(this.shellPS,
+                                  "ps",
+                                  "- Displays PIDs and statuses.");
+            this.commandList[this.commandList.length] = sc;
+
+            // kill
+            sc = new ShellCommand(this.shellKill,
+                                  "kill",
+                                  "<pid> - Kills the process with the specified ID.");
+            this.commandList[this.commandList.length] = sc;
+
+            // killall
+            sc = new ShellCommand(this.shellKillAll,
+                                  "killall",
+                                  "- Kills all running processes.");
+            this.commandList[this.commandList.length] = sc;
+
+            // quantum
+            sc = new ShellCommand(this.shellQuantum,
+                                  "quantum",
+                                  "<value> - Sets the Round Robin quantum.");
+            this.commandList[this.commandList.length] = sc;
 
             // Display the initial prompt.
             this.putPrompt();
@@ -343,6 +377,30 @@ module TSOS {
                         _StdOut.putText("Triggers a BSOD for testing purposes.");
                         break;
 
+                    case "clearmem":
+                        _StdOut.putText("Clears memory (this has some guardrails for running programs).");
+                        break;
+
+                    case "runall":
+                        _StdOut.putText("Runs up to three programs in memory.");
+                        break;
+
+                    case "ps":
+                        _StdOut.putText("Displays all PIDs and process states to the user.");
+                        break;
+
+                    case "kill":
+                        _StdOut.putText("Kills the process with the specified ID.");
+                        break;
+
+                    case "killall":
+                        _StdOut.putText("Kills all the processes.");
+                        break;
+
+                    case "quantum":
+                        _StdOut.putText("Sets the Round Robin quantum.");
+                        break;
+
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -449,6 +507,7 @@ module TSOS {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
 
+                _Kernel.singleRun = true; // set this flag to let the program know we only want to run one program.
                 _Kernel.krnRunProcess(pid);
             } else {
                 _StdOut.putText("Error: please specify a PID");
@@ -466,6 +525,74 @@ module TSOS {
                 (<HTMLSpanElement>document.getElementById("status-message")).innerHTML = statusMessage;
             } else {
                 _StdOut.putText("Usage: status <string>  Please supply a string.");
+            }
+        }
+
+        public shellClearMemory(args: string[]) {
+            _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
+        }
+
+        public shellRunAll(args: string[]) {
+            if (_PCBQueue.getSize() > 0) {
+                let pcb: PCB = _PCBQueue.head();
+
+                _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
+    
+                if (pcb.state === State.READY) {
+                    _Kernel.krnRunProcess(pcb.pid);
+                }
+            } else {
+                _StdOut.putText("There are no programs in the queue.");
+            }
+        }
+
+        public shellPS(args: string[]) {
+            if (_PCBList.length == 0) {
+                _StdOut.putText("No processes have been run.");
+            }
+
+            for (let i = 0; i < _PCBList.length; i++) {
+                let pcb = _PCBList[i];
+
+                _StdOut.putText(`PID: ${pcb.pid}`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`State: ${pcb.state}`);
+                _StdOut.advanceLine();
+                _StdOut.putText(`Segment: ${pcb.segment}`);
+                _StdOut.advanceLine();
+                _StdOut.advanceLine();
+            }
+        }
+        
+        public shellKill(args: string[]) {
+            if (args.length > 0) {
+                let pid = parseInt(args[0]);
+
+                for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                    if (pid == _PCBQueue.q[i].pid) {
+                        _Kernel.krnTerminateProcess(_PCBQueue.q[i]);
+                        break;
+                    }
+                }
+            } else {
+                _StdOut.putText("Please specify a PID.");
+            }
+        }
+
+        public shellKillAll(args: string[]) {
+            _Kernel.krnKillAllProcesses();
+        }
+        
+        public shellQuantum(args: string[]) {
+            if (args.length > 0) {
+                let oldQuantum = _CpuScheduler.quantum;
+                let newQuantum = parseInt(args[0]);
+
+                _CpuScheduler.quantum = newQuantum;
+
+                _StdOut.putText(`Quantum changed from ${oldQuantum} to ${newQuantum}.`);
+            } else {
+                _StdOut.putText("Please specify a new quantum.");
             }
         }
     }

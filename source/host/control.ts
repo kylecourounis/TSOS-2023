@@ -144,7 +144,7 @@ module TSOS {
         }
 
         public static hostBtnNextStep_click(btn): void {
-            if (Control.stepMode && _Kernel.currentRunningProcess) {
+            if (Control.stepMode) {
                 _KernelInterruptQueue.enqueue(new Interrupt(NEXT_STEP_IRQ, []));
             }
         }
@@ -260,6 +260,7 @@ module TSOS {
             row.cells[5].innerHTML = Utils.toHex(pcb.xReg, 2);
             row.cells[6].innerHTML = Utils.toHex(pcb.yReg, 2);
             row.cells[7].innerHTML = Utils.toHex(pcb.zFlag, 2);
+            row.cells[8].innerHTML = Utils.toHex(pcb.segment, 2);
         }
     }
 }

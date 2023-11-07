@@ -33,6 +33,14 @@ module TSOS {
             return retVal;
         }
 
+        public head() {
+            return this.q[0];
+        }
+
+        public clear() {
+            this.q = [];
+        }
+
         public toString() {
             var retVal = "";
             for (var i in this.q) {
