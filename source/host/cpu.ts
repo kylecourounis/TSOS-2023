@@ -14,14 +14,13 @@
 module TSOS {
 
     export class Cpu {
-        public breakFlag: boolean;
-
         constructor(public PC: number = 0,
                     public IR: number = 0,
                     public Acc: number = 0,
                     public Xreg: number = 0,
                     public Yreg: number = 0,
                     public Zflag: number = 0,
+                    public breakFlag: boolean = false,
                     public isExecuting: boolean = false) {
 
         }
@@ -33,6 +32,7 @@ module TSOS {
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            this.breakFlag = false;
             this.isExecuting = false;
         }
 
@@ -129,11 +129,11 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    // this.isExecuting = false;
-
-                    this.breakFlag = true;
-
-                    console.log(JSON.stringify(_CurrentProcess));
+                    if (!_Kernel.singleRun) {
+                        this.breakFlag = true;
+                    } else {
+                        _Kernel.krnTerminateProcess(_CurrentProcess);
+                    }
 
                     break;
                 }
@@ -165,7 +165,7 @@ module TSOS {
         
                 case OpCode.INC: {
                     this.Acc = _MemAccessor.getMDR();
-                    this.Acc += 1;
+                    this.Acc++;
                     _MemAccessor.write(this.Acc);
                     
                     break;

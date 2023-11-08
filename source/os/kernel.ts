@@ -115,7 +115,7 @@ module TSOS {
                 _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
             }
             
-            // _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
+            _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
 
         //
@@ -124,7 +124,7 @@ module TSOS {
         public krnInitProcess(program: string[], baseAddr: number = 0) {
             let pcb = new PCB();
 
-            pcb.state = State.READY;
+            pcb.state = State.RESIDENT;
 
             let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
 
@@ -132,7 +132,6 @@ module TSOS {
                 PCB.pidStore++; // Increment PID counter only if we successfully create it
 
                 _PCBList.push(pcb); // This is what we're actually using for the moment
-                _PCBQueue.enqueue(pcb); // This is WIP
     
                 _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
     
@@ -148,6 +147,8 @@ module TSOS {
             let pcb = <PCB>_PCBList[pid];
 
             if (pcb) {
+                pcb.state = State.READY;
+
                 if (pcb.state === State.READY) {
                     _CPU.init(); // Reset the CPU values before we run the application
                     
@@ -172,9 +173,29 @@ module TSOS {
         public krnTerminateProcess(pcb: PCB) {
             pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
 
+            if (_CurrentProcess !== null) {
+                if (_CurrentProcess.pid === pcb.pid) {
+                    _CurrentProcess = null;
+                    _CpuScheduler.cycleCount = 0; 
+                    _CPU.init();
+                } else {
+                    for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                        let process = _PCBQueue.dequeue();
+
+                        if (process.pid !== pcb.pid) {
+                            _PCBQueue.enqueue(process);
+                        }
+                    }
+                }
+            }
+    
+            _MemoryManager.deallocateMemory(pcb);
+            
             Control.updatePCBRow(pcb);
 
-            _MemoryManager.deallocateMemory(pcb);
+            if (this.singleRun) {
+                _CPU.isExecuting = false;
+            }
         }
 
         public krnKillAllProcesses() {
@@ -193,6 +214,8 @@ module TSOS {
                 _StdOut.putText("Unable to clear memory while the CPU is executing!");
             } else {
                 _Memory.clearMemory(0, Memory.SIZE); // clears the entire memory
+
+                _MemoryManager.deallocateTerminatedProcesses(); // Just in case it hasn't been run on the clock pulse
 
                 _PCBQueue.clear();
             }
@@ -243,10 +266,10 @@ module TSOS {
                     InterruptRoutines.triggerContextSwitch();
                     break;
                 case MEM_ACC_VIOLATION_IRQ:
-                    _StdOut.putText(`Memory access violation in segment ${params[0]} at ${Utils.toHex(params[1], 4)}!`);
-                    
                     this.krnTerminateProcess(_CurrentProcess);
 
+                    _StdOut.putText(`Memory access violation in segment ${params[0]} at ${Utils.toHex(params[1], 4)}!`);
+                    
                     break;
                 case INVALID_OP_CODE_IRQ:
                     _StdOut.putText(`Invalid opcode: ${Utils.toHex(params[1], 2)} at ${Utils.toHex(params[0], 4)}`);

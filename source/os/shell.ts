@@ -483,7 +483,7 @@ module TSOS {
             let regex = new RegExp("^[0-9A-F, ]+$");
 
             // Using JSON.stringify to get the raw value including the new line and other symbols
-            let value = JSON.stringify((<HTMLInputElement>textArea).value);
+            let value = JSON.stringify((<HTMLInputElement>textArea).value.trim());
 
             if (value.length > 0) {
                 value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function, and replace the carriage returns
@@ -533,6 +533,15 @@ module TSOS {
         }
 
         public shellRunAll(args: string[]) {
+            for (let i = 0; i < _PCBList.length; i++) {
+                let pcb = _PCBList[i];
+
+                if (pcb.state === State.RESIDENT) {
+                    pcb.state = State.READY;
+                    _PCBQueue.enqueue(pcb); 
+                }
+            }
+            
             if (_PCBQueue.getSize() > 0) {
                 let pcb: PCB = _PCBQueue.head();
 

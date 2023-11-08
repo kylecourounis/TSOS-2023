@@ -19,15 +19,16 @@ var TSOS;
         Xreg;
         Yreg;
         Zflag;
-        isExecuting;
         breakFlag;
-        constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
+        isExecuting;
+        constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, breakFlag = false, isExecuting = false) {
             this.PC = PC;
             this.IR = IR;
             this.Acc = Acc;
             this.Xreg = Xreg;
             this.Yreg = Yreg;
             this.Zflag = Zflag;
+            this.breakFlag = breakFlag;
             this.isExecuting = isExecuting;
         }
         init() {
@@ -37,6 +38,7 @@ var TSOS;
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            this.breakFlag = false;
             this.isExecuting = false;
         }
         /**
@@ -113,9 +115,12 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BRK: {
-                    // this.isExecuting = false;
-                    this.breakFlag = true;
-                    console.log(JSON.stringify(_CurrentProcess));
+                    if (!_Kernel.singleRun) {
+                        this.breakFlag = true;
+                    }
+                    else {
+                        _Kernel.krnTerminateProcess(_CurrentProcess);
+                    }
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -140,7 +145,7 @@ var TSOS;
                 }
                 case TSOS.OpCode.INC: {
                     this.Acc = _MemAccessor.getMDR();
-                    this.Acc += 1;
+                    this.Acc++;
                     _MemAccessor.write(this.Acc);
                     break;
                 }

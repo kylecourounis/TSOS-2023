@@ -31,7 +31,7 @@ module TSOS {
 
                 if (_CPU.breakFlag) {
                     _Kernel.krnTerminateProcess(headProcess);
-                    _PCBQueue.q.splice(_PCBQueue.q.indexOf(headProcess), 1);
+                    _PCBQueue.q.splice(_PCBQueue.q.indexOf(headProcess), 1); // remove it in case it hasn't been in time
                 }
             } else {
                 _CPU.isExecuting = false;

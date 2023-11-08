@@ -371,7 +371,7 @@ var TSOS;
             // I found this regular expression to test for hex characters here: https://stackoverflow.com/a/5317339
             let regex = new RegExp("^[0-9A-F, ]+$");
             // Using JSON.stringify to get the raw value including the new line and other symbols
-            let value = JSON.stringify(textArea.value);
+            let value = JSON.stringify(textArea.value.trim());
             if (value.length > 0) {
                 value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function, and replace the carriage returns
                 if (regex.test(value)) {
@@ -415,6 +415,13 @@ var TSOS;
             _Kernel.krnClearMemory(); // Makes a kernel call to clear the memory
         }
         shellRunAll(args) {
+            for (let i = 0; i < _PCBList.length; i++) {
+                let pcb = _PCBList[i];
+                if (pcb.state === TSOS.State.RESIDENT) {
+                    pcb.state = TSOS.State.READY;
+                    _PCBQueue.enqueue(pcb);
+                }
+            }
             if (_PCBQueue.getSize() > 0) {
                 let pcb = _PCBQueue.head();
                 _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.

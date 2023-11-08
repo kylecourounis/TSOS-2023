@@ -18,7 +18,7 @@ module TSOS {
             while (hexVal !== 0x00) {
                 let convertedChar = String.fromCharCode(hexVal);
                 _StdOut.putText(convertedChar);
-
+                
                 i++; // increment i
 
                 _MemAccessor.readImmediate(params[0] + i);

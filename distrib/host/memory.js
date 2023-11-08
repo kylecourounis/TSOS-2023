@@ -20,7 +20,7 @@ var TSOS;
         constructor() {
         }
         init() {
-            this.memory = new Uint8Array(Memory.SIZE);
+            this.memory = new Uint32Array(Memory.SIZE);
             for (let i = 0x0; i < this.memory.length; i++) {
                 this.memory[i] = 0x00;
             }
