@@ -106,10 +106,12 @@ module TSOS {
                     _CpuScheduler.schedule();
                 }
 
-                _CPU.cycle();
+                if (_CurrentProcess) {
+                    _CPU.cycle();
 
-                _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
-                Control.updatePCBRow(_CurrentProcess); // Update the visual
+                    _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+                    Control.updatePCBRow(_CurrentProcess); // Update the visual
+                }
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
                 _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
@@ -147,9 +149,7 @@ module TSOS {
             let pcb = <PCB>_PCBList[pid];
 
             if (pcb) {
-                pcb.state = State.READY;
-
-                if (pcb.state === State.READY) {
+                if (pcb.state === State.RESIDENT || pcb.state === State.READY) {
                     _CPU.init(); // Reset the CPU values before we run the application
                     
                     pcb.state = State.RUNNING;
@@ -172,15 +172,18 @@ module TSOS {
 
         public krnTerminateProcess(pcb: PCB) {
             pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
-
+            
             if (_CurrentProcess !== null) {
                 if (_CurrentProcess.pid === pcb.pid) {
-                    _CurrentProcess = null;
                     _CpuScheduler.cycleCount = 0; 
+
+                    _CurrentProcess = null;
                     _CPU.init();
+
+                    _PCBQueue.q.splice(_PCBQueue.q.indexOf(_CurrentProcess), 1);
                 } else {
                     for (let i = 0; i < _PCBQueue.getSize(); i++) {
-                        let process = _PCBQueue.dequeue();
+                        let process: PCB = _PCBQueue.dequeue();
 
                         if (process.pid !== pcb.pid) {
                             _PCBQueue.enqueue(process);
@@ -201,9 +204,17 @@ module TSOS {
         public krnKillAllProcesses() {
             _CPU.isExecuting = false;
 
-            for (let i in _PCBQueue.q) {
-                let pcb = _PCBQueue.q[i];
-                this.krnTerminateProcess(pcb);
+            if (_PCBQueue.getSize() > 0) {
+                for (let i in _PCBQueue.q) {
+                    let pcb = _PCBQueue.q[i];
+                    this.krnTerminateProcess(pcb);
+                }
+
+                _StdOut.putText("Terminated all running processes.");
+                _StdOut.advanceLine();
+            } else {
+                _StdOut.putText("No processes to terminate.");
+                _StdOut.advanceLine();
             }
 
             _CPU.init();
@@ -218,6 +229,9 @@ module TSOS {
                 _MemoryManager.deallocateTerminatedProcesses(); // Just in case it hasn't been run on the clock pulse
 
                 _PCBQueue.clear();
+
+                _StdOut.putText("Cleared memory.");
+                _StdOut.advanceLine();
             }
         }
         

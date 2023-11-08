@@ -14,12 +14,10 @@ module TSOS {
 
                     _PCBQueue.enqueue(headProcess);
     
-                    // _PCBQueue.q.forEach(pcb => {
-                    //     console.log(JSON.stringify(pcb));
-                    // });
-                    
                     _CurrentProcess = _PCBQueue.head(); // get head of process queue
                     _CurrentProcess.state = State.RUNNING;
+
+                    console.log(_CurrentProcess);
     
                     Control.updatePCBRow(_CurrentProcess);
                     Control.updateCPUView();
@@ -31,7 +29,6 @@ module TSOS {
 
                 if (_CPU.breakFlag) {
                     _Kernel.krnTerminateProcess(headProcess);
-                    _PCBQueue.q.splice(_PCBQueue.q.indexOf(headProcess), 1); // remove it in case it hasn't been in time
                 }
             } else {
                 _CPU.isExecuting = false;
