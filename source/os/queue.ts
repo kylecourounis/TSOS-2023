@@ -41,6 +41,11 @@ module TSOS {
             this.q = [];
         }
 
+        public remove(element) {
+            // I originally tried using indexOf, but that wasn't behaving.
+            this.q = this.q.filter((e) => e !== element);
+        }
+
         public toString() {
             var retVal = "";
             for (var i in this.q) {

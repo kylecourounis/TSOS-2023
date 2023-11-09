@@ -93,7 +93,7 @@ module TSOS {
                This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
                that it has to look for interrupts and process them if it finds any.                          
             */
-           
+
             // Check for an interrupt, if there are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
@@ -105,12 +105,12 @@ module TSOS {
                 if (!this.singleRun) {
                     _CpuScheduler.schedule();
                 }
-
+                
                 if (_CurrentProcess) {
-                    _CPU.cycle();
-
                     _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
                     Control.updatePCBRow(_CurrentProcess); // Update the visual
+
+                    _CPU.cycle();
                 }
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
@@ -171,8 +171,6 @@ module TSOS {
         }
 
         public krnTerminateProcess(pcb: PCB) {
-            pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
-            
             if (_CurrentProcess !== null) {
                 if (_CurrentProcess.pid === pcb.pid) {
                     _CpuScheduler.cycleCount = 0; 
@@ -180,8 +178,9 @@ module TSOS {
                     _CurrentProcess = null;
                     _CPU.init();
 
-                    _PCBQueue.q.splice(_PCBQueue.q.indexOf(_CurrentProcess), 1);
+                    _PCBQueue.remove(pcb);
                 } else {
+                    // Find the process that needs to be terminated
                     for (let i = 0; i < _PCBQueue.getSize(); i++) {
                         let process: PCB = _PCBQueue.dequeue();
 
@@ -191,7 +190,9 @@ module TSOS {
                     }
                 }
             }
-    
+
+            pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
+            
             _MemoryManager.deallocateMemory(pcb);
             
             Control.updatePCBRow(pcb);

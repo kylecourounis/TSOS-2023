@@ -87,9 +87,9 @@ var TSOS;
                     _CpuScheduler.schedule();
                 }
                 if (_CurrentProcess) {
-                    _CPU.cycle();
                     _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
                     TSOS.Control.updatePCBRow(_CurrentProcess); // Update the visual
+                    _CPU.cycle();
                 }
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
@@ -138,15 +138,15 @@ var TSOS;
             }
         }
         krnTerminateProcess(pcb) {
-            pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
             if (_CurrentProcess !== null) {
                 if (_CurrentProcess.pid === pcb.pid) {
                     _CpuScheduler.cycleCount = 0;
                     _CurrentProcess = null;
                     _CPU.init();
-                    _PCBQueue.q.splice(_PCBQueue.q.indexOf(_CurrentProcess), 1);
+                    _PCBQueue.remove(pcb);
                 }
                 else {
+                    // Find the process that needs to be terminated
                     for (let i = 0; i < _PCBQueue.getSize(); i++) {
                         let process = _PCBQueue.dequeue();
                         if (process.pid !== pcb.pid) {
@@ -155,6 +155,7 @@ var TSOS;
                     }
                 }
             }
+            pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
             _MemoryManager.deallocateMemory(pcb);
             TSOS.Control.updatePCBRow(pcb);
             if (this.singleRun) {

@@ -20,7 +20,7 @@ module TSOS {
                     public Xreg: number = 0,
                     public Yreg: number = 0,
                     public Zflag: number = 0,
-                    public breakFlag: boolean = false,
+                    public completedCycle: boolean = false,
                     public isExecuting: boolean = false) {
 
         }
@@ -32,8 +32,6 @@ module TSOS {
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
-            this.breakFlag = false;
-            this.isExecuting = false;
         }
 
         /**
@@ -129,8 +127,8 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    if (!_Kernel.singleRun) {
-                        this.breakFlag = true;
+                    if (!_Kernel.singleRun && _CurrentProcess.state !== State.TERMINATED) {
+                        _Kernel.krnTerminateProcess(_CurrentProcess);
                     } else {
                         _Kernel.krnTerminateProcess(_CurrentProcess);
                     }
@@ -192,9 +190,9 @@ module TSOS {
         }
 
         public cycle(): void {
+            this.completedCycle = false;
+
             if (_CurrentProcess.state === State.RUNNING) {
-                _CPU.breakFlag = false;
-                
                 _Kernel.krnTrace('CPU cycle');
                 // TODO: Accumulate CPU usage and profiling statistics here.
                 
@@ -205,6 +203,8 @@ module TSOS {
     
                 this.execute();
             }
+
+            this.completedCycle = true;
         }
 
         public setState(pc: number, ir: number, acc: number, xReg: number, yReg: number, zFlag: number): void {

@@ -19,15 +19,17 @@ var TSOS;
         Xreg;
         Yreg;
         Zflag;
+        completedCycle;
         breakFlag;
         isExecuting;
-        constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, breakFlag = false, isExecuting = false) {
+        constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, completedCycle = false, breakFlag = false, isExecuting = false) {
             this.PC = PC;
             this.IR = IR;
             this.Acc = Acc;
             this.Xreg = Xreg;
             this.Yreg = Yreg;
             this.Zflag = Zflag;
+            this.completedCycle = completedCycle;
             this.breakFlag = breakFlag;
             this.isExecuting = isExecuting;
         }
@@ -39,7 +41,7 @@ var TSOS;
             this.Yreg = 0;
             this.Zflag = 0;
             this.breakFlag = false;
-            this.isExecuting = false;
+            // this.isExecuting = false;
         }
         /**
          * The fetch cycle.
@@ -115,8 +117,10 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BRK: {
-                    if (!_Kernel.singleRun) {
+                    if (!_Kernel.singleRun && _CurrentProcess.state !== TSOS.State.TERMINATED) {
                         this.breakFlag = true;
+                        console.log("Break " + _CurrentProcess.pid);
+                        _Kernel.krnTerminateProcess(_CurrentProcess);
                     }
                     else {
                         _Kernel.krnTerminateProcess(_CurrentProcess);
@@ -166,8 +170,9 @@ var TSOS;
             }
         }
         cycle() {
+            this.completedCycle = false;
             if (_CurrentProcess.state === TSOS.State.RUNNING) {
-                _CPU.breakFlag = false;
+                this.breakFlag = false;
                 _Kernel.krnTrace('CPU cycle');
                 // TODO: Accumulate CPU usage and profiling statistics here.
                 this.fetch();
@@ -175,6 +180,7 @@ var TSOS;
                 this.decode(decodeCycles);
                 this.execute();
             }
+            this.completedCycle = true;
         }
         setState(pc, ir, acc, xReg, yReg, zFlag) {
             this.PC = pc;
