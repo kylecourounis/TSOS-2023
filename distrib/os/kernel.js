@@ -156,9 +156,11 @@ var TSOS;
                     }
                 }
             }
-            pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
-            TSOS.Control.updatePCBRow(pcb);
-            _MemoryManager.deallocateMemory(pcb);
+            if (pcb) {
+                pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
+                TSOS.Control.updatePCBRow(pcb);
+                _MemoryManager.deallocateMemory(pcb);
+            }
             if (this.singleRun) {
                 _CPU.isExecuting = false;
             }
@@ -235,11 +237,16 @@ var TSOS;
                     TSOS.InterruptRoutines.triggerContextSwitch();
                     break;
                 case MEM_ACC_VIOLATION_IRQ:
-                    this.krnTerminateProcess(_CurrentProcess);
+                    // This will show twice for both the read and the write
                     _StdOut.putText(`Memory access violation in segment ${params[0]} at ${TSOS.Utils.toHex(params[1], 4)}!`);
+                    _StdOut.advanceLine();
+                    _OsShell.putPrompt();
+                    this.krnTerminateProcess(_CurrentProcess);
                     break;
                 case INVALID_OP_CODE_IRQ:
                     _StdOut.putText(`Invalid opcode: ${TSOS.Utils.toHex(params[1], 2)} at ${TSOS.Utils.toHex(params[0], 4)}`);
+                    _StdOut.advanceLine();
+                    _OsShell.putPrompt();
                     this.krnTerminateProcess(_CurrentProcess);
                     break;
                 case TERMINATE_IRQ:
