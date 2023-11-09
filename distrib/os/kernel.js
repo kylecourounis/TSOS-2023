@@ -52,12 +52,11 @@ var TSOS;
         }
         krnShutdown() {
             this.krnTrace("begin shutdown OS");
+            _PCBQueue.clear();
+            _CurrentProcess = null;
             // Set each process to a terminated state
             _PCBList.forEach(pcb => {
-                if (pcb.state === TSOS.State.RUNNING) {
-                    pcb.state = TSOS.State.TERMINATED;
-                    TSOS.Control.updatePCBRow(pcb);
-                }
+                this.krnTerminateProcess(pcb);
             });
             // ... Disable the Interrupts.
             this.krnTrace("Disabling the interrupts.");
@@ -94,7 +93,9 @@ var TSOS;
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
-                _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
+                if (!TSOS.Control.stepMode) {
+                    _CurrentProcess = null; // This is so the memory accessor doesn't throw a violation when we want to load new programs after they're finished executing.
+                }
             }
             _MemoryManager.deallocateTerminatedProcesses(); // this is a good check
         }
@@ -156,8 +157,8 @@ var TSOS;
                 }
             }
             pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
-            _MemoryManager.deallocateMemory(pcb);
             TSOS.Control.updatePCBRow(pcb);
+            _MemoryManager.deallocateMemory(pcb);
             if (this.singleRun) {
                 _CPU.isExecuting = false;
             }
@@ -165,9 +166,11 @@ var TSOS;
         krnKillAllProcesses() {
             _CPU.isExecuting = false;
             if (_PCBQueue.getSize() > 0) {
-                for (let i in _PCBQueue.q) {
-                    let pcb = _PCBQueue.q[i];
-                    this.krnTerminateProcess(pcb);
+                for (let i in _PCBList) {
+                    let pcb = _PCBList[i];
+                    if (pcb.state !== TSOS.State.TERMINATED) {
+                        this.krnTerminateProcess(pcb);
+                    }
                 }
                 _StdOut.putText("Terminated all running processes.");
                 _StdOut.advanceLine();
@@ -238,6 +241,9 @@ var TSOS;
                 case INVALID_OP_CODE_IRQ:
                     _StdOut.putText(`Invalid opcode: ${TSOS.Utils.toHex(params[1], 2)} at ${TSOS.Utils.toHex(params[0], 4)}`);
                     this.krnTerminateProcess(_CurrentProcess);
+                    break;
+                case TERMINATE_IRQ:
+                    this.krnTerminateProcess(params[0]);
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

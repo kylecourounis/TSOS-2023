@@ -31,6 +31,8 @@ const MEM_ACC_VIOLATION_IRQ: number = 6;
 
 const INVALID_OP_CODE_IRQ: number = 7;
 
+const TERMINATE_IRQ: number = 8;
+
 
 
 //

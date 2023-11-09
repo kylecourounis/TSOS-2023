@@ -127,12 +127,7 @@ module TSOS {
                 }
         
                 case OpCode.BRK: {
-                    if (!_Kernel.singleRun && _CurrentProcess.state !== State.TERMINATED) {
-                        _Kernel.krnTerminateProcess(_CurrentProcess);
-                    } else {
-                        _Kernel.krnTerminateProcess(_CurrentProcess);
-                    }
-
+                    _KernelInterruptQueue.enqueue(new Interrupt(TERMINATE_IRQ, [_CurrentProcess]));
                     break;
                 }
         
@@ -192,16 +187,18 @@ module TSOS {
         public cycle(): void {
             this.completedCycle = false;
 
-            if (_CurrentProcess.state === State.RUNNING) {
-                _Kernel.krnTrace('CPU cycle');
-                // TODO: Accumulate CPU usage and profiling statistics here.
-                
-                this.fetch();
-    
-                let decodeCycles = DecodeCycles.get(this.IR);
-                this.decode(decodeCycles);
-    
-                this.execute();
+            if (_CurrentProcess) {
+                if (_CurrentProcess.state === State.RUNNING) {
+                    _Kernel.krnTrace('CPU cycle');
+                    // TODO: Accumulate CPU usage and profiling statistics here.
+                    
+                    this.fetch();
+        
+                    let decodeCycles = DecodeCycles.get(this.IR);
+                    this.decode(decodeCycles);
+        
+                    this.execute();
+                }
             }
 
             this.completedCycle = true;

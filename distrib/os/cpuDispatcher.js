@@ -8,11 +8,12 @@ var TSOS;
             if (_PCBQueue.getSize() > 0) {
                 let runningProcess = _CurrentProcess;
                 if (runningProcess) {
+                    _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
                     _CPU.init();
                     _CurrentProcess.state = TSOS.State.READY;
+                    TSOS.Control.updatePCBRow(_CurrentProcess);
                     _PCBQueue.enqueue(_CurrentProcess);
                 }
-                console.log(JSON.stringify(_PCBQueue));
                 _CurrentProcess = _PCBQueue.dequeue();
                 _CurrentProcess.state = TSOS.State.RUNNING;
                 TSOS.Control.updatePCBRow(_CurrentProcess);

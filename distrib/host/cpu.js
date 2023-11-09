@@ -20,9 +20,8 @@ var TSOS;
         Yreg;
         Zflag;
         completedCycle;
-        breakFlag;
         isExecuting;
-        constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, completedCycle = false, breakFlag = false, isExecuting = false) {
+        constructor(PC = 0, IR = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, completedCycle = false, isExecuting = false) {
             this.PC = PC;
             this.IR = IR;
             this.Acc = Acc;
@@ -30,7 +29,6 @@ var TSOS;
             this.Yreg = Yreg;
             this.Zflag = Zflag;
             this.completedCycle = completedCycle;
-            this.breakFlag = breakFlag;
             this.isExecuting = isExecuting;
         }
         init() {
@@ -40,8 +38,6 @@ var TSOS;
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
-            this.breakFlag = false;
-            // this.isExecuting = false;
         }
         /**
          * The fetch cycle.
@@ -117,14 +113,7 @@ var TSOS;
                     break;
                 }
                 case TSOS.OpCode.BRK: {
-                    if (!_Kernel.singleRun && _CurrentProcess.state !== TSOS.State.TERMINATED) {
-                        this.breakFlag = true;
-                        console.log("Break " + _CurrentProcess.pid);
-                        _Kernel.krnTerminateProcess(_CurrentProcess);
-                    }
-                    else {
-                        _Kernel.krnTerminateProcess(_CurrentProcess);
-                    }
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERMINATE_IRQ, [_CurrentProcess]));
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -171,14 +160,15 @@ var TSOS;
         }
         cycle() {
             this.completedCycle = false;
-            if (_CurrentProcess.state === TSOS.State.RUNNING) {
-                this.breakFlag = false;
-                _Kernel.krnTrace('CPU cycle');
-                // TODO: Accumulate CPU usage and profiling statistics here.
-                this.fetch();
-                let decodeCycles = TSOS.DecodeCycles.get(this.IR);
-                this.decode(decodeCycles);
-                this.execute();
+            if (_CurrentProcess) {
+                if (_CurrentProcess.state === TSOS.State.RUNNING) {
+                    _Kernel.krnTrace('CPU cycle');
+                    // TODO: Accumulate CPU usage and profiling statistics here.
+                    this.fetch();
+                    let decodeCycles = TSOS.DecodeCycles.get(this.IR);
+                    this.decode(decodeCycles);
+                    this.execute();
+                }
             }
             this.completedCycle = true;
         }

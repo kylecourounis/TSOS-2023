@@ -8,12 +8,14 @@ module TSOS {
                 let runningProcess = _CurrentProcess;
                 
                 if (runningProcess) {
+                    _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
                     _CPU.init();
+
                     _CurrentProcess.state = State.READY;
+                    Control.updatePCBRow(_CurrentProcess);
+
                     _PCBQueue.enqueue(_CurrentProcess);
                 }
-
-                console.log(JSON.stringify(_PCBQueue));
 
                 _CurrentProcess = _PCBQueue.dequeue();
                 _CurrentProcess.state = State.RUNNING;

@@ -13,6 +13,7 @@ var TSOS;
         schedule() {
             _CPU.isExecuting = true;
             if (this.cycleCount == this.quantum) {
+                // Wait for the cycle to complete before calling the rest of the function
                 while (!_CPU.completedCycle) {
                     //...
                 }
