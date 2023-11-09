@@ -55,7 +55,7 @@ var TSOS;
          * Read from memory using the program counter.
          */
         read() {
-            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+            if (this.getMAR() > _CurrentProcess.limit) {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
                 return null;
             }
@@ -68,7 +68,7 @@ var TSOS;
          * Write to memory.
          */
         write(value) {
-            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+            if (this.getMAR() > _CurrentProcess.limit) {
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
             }
             else {
@@ -81,8 +81,9 @@ var TSOS;
          * @param address The address at which to read the MDR from.
          */
         readImmediate(address) {
+            this.memory.setMAR(address);
             if (_CurrentProcess != null) {
-                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
                 }
                 else {
@@ -91,7 +92,6 @@ var TSOS;
                 }
             }
             else {
-                this.memory.setMAR(address);
                 this.memory.read();
             }
         }
@@ -102,7 +102,7 @@ var TSOS;
          */
         writeImmediate(address, value) {
             if (_CurrentProcess != null) {
-                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
                 }
                 else {

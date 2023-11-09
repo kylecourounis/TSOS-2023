@@ -36,6 +36,10 @@ var TSOS;
         clear() {
             this.q = [];
         }
+        remove(element) {
+            // I originally tried using indexOf, but that wasn't behaving.
+            this.q = this.q.filter((e) => e !== element);
+        }
         toString() {
             var retVal = "";
             for (var i in this.q) {

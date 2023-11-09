@@ -19,13 +19,13 @@ var TSOS;
         location;
         constructor() {
             this.pid = PCB.pidStore;
-            PCB.pidStore++;
             this.programCounter = 0;
             this.instructionRegister = 0;
             this.acc = 0;
             this.xReg = 0;
             this.yReg = 0;
             this.zFlag = 0;
+            this.segment = 0;
             this.location = Location.MEMORY;
             this.state = State.NEW;
         }

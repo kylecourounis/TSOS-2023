@@ -16,7 +16,7 @@ module TSOS {
     export class Memory {
         public static SIZE: number = 0x300;
 
-        public memory: Uint8Array;
+        public memory: Uint32Array;
 
         private mar: number = 0x0000;
         private mdr: number = 0x00;
@@ -26,7 +26,7 @@ module TSOS {
         }
 
         public init(): void {
-            this.memory = new Uint8Array(Memory.SIZE);
+            this.memory = new Uint32Array(Memory.SIZE);
 
             for (let i = 0x0; i < this.memory.length; i++) {
                 this.memory[i] = 0x00;

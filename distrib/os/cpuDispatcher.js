@@ -4,27 +4,21 @@
 var TSOS;
 (function (TSOS) {
     class CpuDispatcher {
-        constructor() {
-        }
         doContextSwitch() {
             if (_PCBQueue.getSize() > 0) {
-                let headProcess = _PCBQueue.dequeue();
-                if (headProcess.state !== TSOS.State.TERMINATED) {
-                    headProcess.state = TSOS.State.READY;
-                    headProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
-                    TSOS.Control.updatePCBRow(headProcess);
-                    _PCBQueue.enqueue(headProcess);
-                    _CurrentProcess = _PCBQueue.head(); // get head of process queue
-                    _CurrentProcess.state = TSOS.State.RUNNING;
-                    console.log(headProcess);
+                let runningProcess = _CurrentProcess;
+                if (runningProcess) {
+                    _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
+                    _CPU.init();
+                    _CurrentProcess.state = TSOS.State.READY;
                     TSOS.Control.updatePCBRow(_CurrentProcess);
-                    TSOS.Control.updateCPUView();
-                    _CPU.isExecuting = true;
-                    _CPU.setState(_CurrentProcess.programCounter, _CurrentProcess.instructionRegister, _CurrentProcess.acc, _CurrentProcess.xReg, _CurrentProcess.yReg, _CurrentProcess.zFlag);
+                    _PCBQueue.enqueue(_CurrentProcess);
                 }
-                else {
-                    _Kernel.krnTerminateProcess(headProcess);
-                }
+                _CurrentProcess = _PCBQueue.dequeue();
+                _CurrentProcess.state = TSOS.State.RUNNING;
+                TSOS.Control.updatePCBRow(_CurrentProcess);
+                TSOS.Control.updateCPUView();
+                _CPU.setState(_CurrentProcess.programCounter, _CurrentProcess.instructionRegister, _CurrentProcess.acc, _CurrentProcess.xReg, _CurrentProcess.yReg, _CurrentProcess.zFlag);
             }
             else {
                 _CPU.isExecuting = false;

@@ -483,7 +483,7 @@ module TSOS {
             let regex = new RegExp("^[0-9A-F, ]+$");
 
             // Using JSON.stringify to get the raw value including the new line and other symbols
-            let value = JSON.stringify((<HTMLInputElement>textArea).value);
+            let value = JSON.stringify((<HTMLInputElement>textArea).value.trim());
 
             if (value.length > 0) {
                 value = value.substring(1, value.length - 1).replaceAll("\\n", " ").replaceAll("\\r", " "); // remove the leading and trailing quotes that come from the stringify function, and replace the carriage returns
@@ -533,12 +533,22 @@ module TSOS {
         }
 
         public shellRunAll(args: string[]) {
+            for (let i = 0; i < _PCBList.length; i++) {
+                let pcb = _PCBList[i];
+
+                if (pcb.state === State.RESIDENT) {
+                    pcb.state = State.READY;
+                    _PCBQueue.enqueue(pcb); 
+                }
+            }
+            
             if (_PCBQueue.getSize() > 0) {
                 let pcb: PCB = _PCBQueue.head();
 
                 _Kernel.singleRun = false; // set this flag to let the program know we only want to run multiple programs.
     
                 if (pcb.state === State.READY) {
+                    pcb = _PCBQueue.dequeue(); // remove the first one so we can requeue it at the end.
                     _Kernel.krnRunProcess(pcb.pid);
                 }
             } else {
@@ -568,9 +578,14 @@ module TSOS {
             if (args.length > 0) {
                 let pid = parseInt(args[0]);
 
-                for (let i = 0; i < _PCBQueue.getSize(); i++) {
-                    if (pid == _PCBQueue.q[i].pid) {
-                        _Kernel.krnTerminateProcess(_PCBQueue.q[i]);
+                for (let i = 0; i < _PCBList.length; i++) {
+                    if (pid == _PCBList[i].pid) {
+                        _Kernel.krnTerminateProcess(_PCBList[i]);
+                        _StdOut.advanceLine();
+                        _StdOut.putText(`Killed process with PID ${pid}.`);
+                        _StdOut.advanceLine();
+                        _OsShell.putPrompt();
+
                         break;
                     }
                 }

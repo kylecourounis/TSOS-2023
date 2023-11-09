@@ -191,6 +191,14 @@ var TSOS;
             let zFlagElem = document.createElement('td');
             zFlagElem.innerHTML = pcb.zFlag.toString();
             row.appendChild(zFlagElem);
+            // Create segment element
+            let segElem = document.createElement('td');
+            segElem.innerHTML = pcb.segment.toString();
+            row.appendChild(segElem);
+            // Create segment element
+            let locationElem = document.createElement('td');
+            locationElem.innerHTML = pcb.location.toString();
+            row.appendChild(locationElem);
             // Append to table
             let processes = document.querySelector('#processes');
             processes.appendChild(row);
@@ -208,6 +216,8 @@ var TSOS;
             row.cells[5].innerHTML = TSOS.Utils.toHex(pcb.xReg, 2);
             row.cells[6].innerHTML = TSOS.Utils.toHex(pcb.yReg, 2);
             row.cells[7].innerHTML = TSOS.Utils.toHex(pcb.zFlag, 2);
+            row.cells[8].innerHTML = pcb.segment.toString();
+            row.cells[9].innerHTML = pcb.location.toString();
         }
     }
     TSOS.Control = Control;

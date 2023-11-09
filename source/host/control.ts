@@ -240,6 +240,16 @@ module TSOS {
             zFlagElem.innerHTML = pcb.zFlag.toString();
             row.appendChild(zFlagElem);
 
+            // Create segment element
+            let segElem: HTMLTableCellElement = document.createElement('td');
+            segElem.innerHTML = pcb.segment.toString();
+            row.appendChild(segElem);
+
+            // Create segment element
+            let locationElem: HTMLTableCellElement = document.createElement('td');
+            locationElem.innerHTML = pcb.location.toString();
+            row.appendChild(locationElem);
+
             // Append to table
             let processes = <HTMLTableElement>document.querySelector('#processes');
             processes.appendChild(row);
@@ -260,7 +270,8 @@ module TSOS {
             row.cells[5].innerHTML = Utils.toHex(pcb.xReg, 2);
             row.cells[6].innerHTML = Utils.toHex(pcb.yReg, 2);
             row.cells[7].innerHTML = Utils.toHex(pcb.zFlag, 2);
-            row.cells[8].innerHTML = Utils.toHex(pcb.segment, 2);
+            row.cells[8].innerHTML = pcb.segment.toString();
+            row.cells[9].innerHTML = pcb.location.toString();
         }
     }
 }

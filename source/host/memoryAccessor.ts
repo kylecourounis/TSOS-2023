@@ -63,7 +63,7 @@ module TSOS {
          * Read from memory using the program counter.
          */
         public read() {
-            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+            if (this.getMAR() > _CurrentProcess.limit) {
                 _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
                 return null;
             } else {
@@ -76,7 +76,7 @@ module TSOS {
          * Write to memory.
          */
         public write(value: number) {
-            if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+            if (this.getMAR() > _CurrentProcess.limit) {
                 _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, this.getMAR()]));
             } else {
                 this.memory.setMDR(value);
@@ -90,15 +90,16 @@ module TSOS {
          * @param address The address at which to read the MDR from.
          */
         public readImmediate(address: number) {
+            this.memory.setMAR(address);
+
             if (_CurrentProcess != null) {
-                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
                 } else {
                     this.setMAR(address);
                     this.memory.read();
                 }
             } else {
-                this.memory.setMAR(address);
                 this.memory.read();
             }
         }
@@ -110,7 +111,7 @@ module TSOS {
          */
         public writeImmediate(address: number, value: number) {
             if (_CurrentProcess != null) {
-                if (this.getMAR() <= _CurrentProcess.base && this.getMAR() >= _CurrentProcess.limit) {
+                if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
                 } else {
                     this.setMAR(address);

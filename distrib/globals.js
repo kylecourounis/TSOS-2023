@@ -11,8 +11,8 @@
 // Global CONSTANTS (TypeScript 1.5 introduced const. Very cool.)
 //
 const APP_NAME = "CourounOS"; // 'cause Bob and I were at a loss for a better name.
-const APP_VERSION = "0.0.1"; // What did you expect?
-const CPU_CLOCK_INTERVAL = 100; // This is in ms (milliseconds) so 1000 = 1 second.
+const APP_VERSION = "0.3.0"; // What did you expect?
+const CPU_CLOCK_INTERVAL = 50; // This is in ms (milliseconds) so 1000 = 1 second.
 const TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
 // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 const KEYBOARD_IRQ = 1;
@@ -22,6 +22,7 @@ const NEXT_STEP_IRQ = 4;
 const DISPATCHER_IRQ = 5;
 const MEM_ACC_VIOLATION_IRQ = 6;
 const INVALID_OP_CODE_IRQ = 7;
+const TERMINATE_IRQ = 8;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.

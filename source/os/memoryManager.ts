@@ -48,7 +48,6 @@ module TSOS {
                 if (pcb.state === State.TERMINATED) {
                     _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
                     this.availableSegments[pcb.segment] = true;
-                    _PCBQueue.q.splice(i, 1); // forcefully remove it
                 }
             }
         }
