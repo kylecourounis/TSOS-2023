@@ -33,8 +33,6 @@ const INVALID_OP_CODE_IRQ: number = 7;
 
 const TERMINATE_IRQ: number = 8;
 
-
-
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
@@ -82,6 +80,7 @@ var _SarcasticMode: boolean = false;
 
 // Global Device Driver Objects - page 12
 var _krnKeyboardDriver: TSOS.DeviceDriverKeyboard  = null;
+var _krnDiskDriver: TSOS.DeviceDriverDisk  = null;
 
 var _hardwareClockID: number = null;
 
