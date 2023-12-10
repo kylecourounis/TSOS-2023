@@ -10,7 +10,7 @@ var TSOS;
     const BLOCKS = 8;
     const HEADER_SIZE = 4;
     const BLOCK_SIZE = 64;
-    const FILE_NAME_LENGTH = 54;
+    const FILE_NAME_LENGTH = 54; // because we're storing the date as well
     // Extends DeviceDriver
     class DeviceDriverDisk extends TSOS.DeviceDriver {
         formatted = false;
@@ -39,8 +39,7 @@ var TSOS;
                         }
                         else {
                             // Set each block to be 0s
-                            // You said to do something with dashes - pretty sure this is what it was? 
-                            // If not, doesn't seem to affect anything lol - I even tested it if I did all zeros here.
+                            // Use -- so that we don't point to the MBR
                             sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + "0".repeat((BLOCK_SIZE - (HEADER_SIZE * 2)) * 2));
                         }
                     }
@@ -61,6 +60,7 @@ var TSOS;
                 }
                 else {
                     let fileExists = this.getDirectoryEntry(filename);
+                    // If it returns an empty string, the file doesn't exist, so we're safe to create it
                     if (fileExists === "") {
                         let newEntry = "01";
                         // i += 2 because two characters is one byte
@@ -69,7 +69,8 @@ var TSOS;
                         }
                         let nameAsHex = "";
                         for (let i = 0; i < filename.length; i++) {
-                            nameAsHex += filename.charCodeAt(i).toString(16).padStart(2, "0").toUpperCase();
+                            // padStart is used to ensure the size of each byte
+                            nameAsHex += this.toHex(filename, i);
                         }
                         // Pad the rest with 0s
                         nameAsHex = nameAsHex.padEnd(FILE_NAME_LENGTH * 2, "0");
@@ -87,8 +88,9 @@ var TSOS;
                             date[i] = hexNum;
                         }
                         newEntry += date.join("");
-                        // Not entirely necessary, but mark the end of the entry in case we ever need to check against it
-                        newEntry += "00";
+                        // This is the number of blocks that the file is used to write
+                        // 2 by default - one for directory entry, one for the file, however, this can expand
+                        newEntry += "02";
                         // Save it on the disk in both the directory portion and the file portion
                         sessionStorage.setItem(firstAvailDir, newEntry);
                         sessionStorage.setItem(firstAvailFile, "01000000".padEnd(BLOCK_SIZE * 2, "0"));
@@ -104,10 +106,106 @@ var TSOS;
             }
         }
         readFile(filename) {
+            let output = "";
+            if (this.formatted) {
+                let block = this.getFirstBlockForFile(filename);
+                if (block !== "") {
+                    let isAtEnd = false;
+                    // Continue until the end of the file or an error
+                    while (!isAtEnd) {
+                        // Make sure we have a file initialized at that block
+                        if (block !== '-:-:-') {
+                            if (sessionStorage.getItem(block).charAt(1) === "1") {
+                                let data = sessionStorage.getItem(block).substring(8); // Skip 4 byte header
+                                for (let i = 0; i < data.length; i += 2) {
+                                    if (!isAtEnd) {
+                                        let hexVal = data.substring(i, i + 2);
+                                        if (hexVal === "00") {
+                                            isAtEnd = true;
+                                        }
+                                        else {
+                                            output += String.fromCharCode(parseInt(hexVal, 16));
+                                        }
+                                        // Go to the next block if needed
+                                        let nextTSB = sessionStorage.getItem(block).substring(2, 8);
+                                        block = `${nextTSB.charAt(1)}:${nextTSB.charAt(3)}:${nextTSB.charAt(5)}`;
+                                    }
+                                }
+                            }
+                            else {
+                                return FileStatus.READ_FROM_AVAILABLE_BLOCK;
+                            }
+                        }
+                        else {
+                            return FileStatus.INVALID_BLOCK;
+                        }
+                    }
+                }
+                else {
+                    return FileStatus.FILE_NOT_FOUND;
+                }
+            }
+            else {
+                return FileStatus.DISK_NOT_FORMATTED;
+            }
+            return output;
         }
-        renameFile(filename) {
+        renameFile(currentFilename, newFilename) {
+            if (this.formatted) {
+                let directoryEntry = this.getDirectoryEntry(currentFilename);
+                let newDirectoryEntry = this.getDirectoryEntry(newFilename);
+                if (directoryEntry === "") {
+                    return FileStatus.FILE_NOT_FOUND;
+                }
+                else if (newDirectoryEntry !== "") {
+                    return FileStatus.DUPLICATE_NAME;
+                }
+                else {
+                    let nameAsHex = "";
+                    for (let i = 0; i < newFilename.length; i++) {
+                        nameAsHex += this.toHex(newFilename, i);
+                    }
+                    nameAsHex = nameAsHex.padEnd(FILE_NAME_LENGTH * 2, "0");
+                    let metadata = sessionStorage.getItem(directoryEntry).substring(8 + FILE_NAME_LENGTH * 2);
+                    sessionStorage.setItem(directoryEntry, sessionStorage.getItem(directoryEntry).substring(0, 8) + nameAsHex + metadata);
+                    // TODO: Update visual
+                    return FileStatus.SUCCESS;
+                }
+            }
+            else {
+                return FileStatus.DISK_NOT_FORMATTED;
+            }
         }
-        writeFile(filename) {
+        // The raw flag is used for swap files
+        writeFile(filename, contents, raw) {
+            if (this.formatted) {
+                let block = this.getFirstBlockForFile(filename);
+                // If empty string is returned, file is not found
+                if (block !== "") {
+                    let contentsAsHex = '';
+                    if (raw) {
+                        contentsAsHex = contents;
+                    }
+                    else {
+                        // If not raw, we need to convert
+                        for (let i = 0; i < contents.length; i++) {
+                            // Hex representation the same as above
+                            contentsAsHex += this.toHex(contents, i);
+                        }
+                    }
+                    // Add EOF
+                    contentsAsHex += "00";
+                    // By default this is true so that we can use as many blocks as needed to write the contents.
+                    let needsNextBlock = true;
+                    return FileStatus.SUCCESS;
+                }
+                else {
+                    return FileStatus.FILE_NOT_FOUND;
+                }
+            }
+            else {
+                return FileStatus.DISK_NOT_FORMATTED;
+            }
         }
         listFiles() {
             let fileList = [];
@@ -145,6 +243,8 @@ var TSOS;
                             let year = parseInt(metadata.substring(4, 8), 16);
                             let date = `${month}/${day}/${year}`;
                             // Create the file entry
+                            // Made this an object so that it's appendable
+                            // I think I'd still have to update the file name length if I wanted any more metadata
                             let fileEntry = {
                                 name: filename,
                                 dateCreated: date
@@ -159,6 +259,26 @@ var TSOS;
                 fileList = null;
             }
             return fileList;
+        }
+        getFirstBlockForFile(fileToFind) {
+            let tsb = "";
+            let directory = this.getDirectoryEntry(fileToFind);
+            // Ensure the file exists
+            if (directory !== "") {
+                let directoryEntry = sessionStorage.getItem(directory);
+                // Get each byte that represent the track, sector, and block
+                try {
+                    let track = parseInt(directoryEntry.substring(2, 3), 16);
+                    let sector = parseInt(directoryEntry.substring(4, 5), 16);
+                    let block = parseInt(directoryEntry.substring(6, 7), 16);
+                    tsb = `${track}:${sector}:${block}`;
+                }
+                catch {
+                    // If there's an error parsing, it's because these aren't ints.
+                    tsb = `-:-:-`;
+                }
+            }
+            return tsb;
         }
         getDirectoryEntry(fileToFind) {
             let location = "";
@@ -242,6 +362,9 @@ var TSOS;
             }
             return data;
         }
+        toHex(value, index) {
+            return value.charCodeAt(index).toString(16).padStart(2, "0").toUpperCase();
+        }
     }
     TSOS.DeviceDriverDisk = DeviceDriverDisk;
     let FileStatus;
@@ -252,6 +375,9 @@ var TSOS;
         FileStatus[FileStatus["FILE_EXISTS"] = 3] = "FILE_EXISTS";
         FileStatus[FileStatus["NO_DIRECTORY_SPACE"] = 4] = "NO_DIRECTORY_SPACE";
         FileStatus[FileStatus["NO_DATA_BLOCKS"] = 5] = "NO_DATA_BLOCKS";
+        FileStatus[FileStatus["READ_FROM_AVAILABLE_BLOCK"] = 6] = "READ_FROM_AVAILABLE_BLOCK";
+        FileStatus[FileStatus["INVALID_BLOCK"] = 7] = "INVALID_BLOCK";
+        FileStatus[FileStatus["DUPLICATE_NAME"] = 8] = "DUPLICATE_NAME";
     })(FileStatus = TSOS.FileStatus || (TSOS.FileStatus = {}));
 })(TSOS || (TSOS = {}));
 //# sourceMappingURL=deviceDriverDisk.js.map

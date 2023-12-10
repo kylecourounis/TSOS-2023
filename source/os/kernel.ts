@@ -307,12 +307,12 @@ module TSOS {
                 }
 
                 case FileStatus.NO_DATA_BLOCKS: {
-                    _StdOut.putText(`Inadequate number of available blocks to to write your file.`);
+                    _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
                     break;
                 }
 
                 case FileStatus.NO_DIRECTORY_SPACE: {
-                    _StdOut.putText(`Inadequate directory space to write your file.`);
+                    _StdOut.putText(`Inadequate directory space to write the file.`);
                     break;
                 }
             
@@ -322,7 +322,91 @@ module TSOS {
                 }
 
                 default: {
-                    _StdOut.putText(`An unknown error occured while writing your file.`);
+                    _StdOut.putText(`An unknown error occured while creating the file.`);
+                    break;
+                }
+            }
+        }
+
+        public krnReadFile(filename: string): void {
+            let output = _krnDiskDriver.readFile(filename);
+            
+            switch (output) {
+                case FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+
+                case FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+
+                case FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                    _StdOut.putText(`Error: trying to read data from an available block.`);
+                    break;
+                }
+
+                case FileStatus.INVALID_BLOCK: {
+                    _StdOut.putText(`Error: trying to read from an invalid block.`);
+                    break;
+                }
+
+                default: {
+                    _StdOut.putText(output);
+                    break;
+                }
+            }
+        }
+
+        public krnWriteFile(filename: string, contents: string, raw: boolean = false): void {
+            let status = _krnDiskDriver.writeFile(filename, contents, raw);
+            
+            switch (status) {
+                case FileStatus.SUCCESS: {
+                    _StdOut.putText(`Wrote '${contents}' to file '${filename}'.`);
+                    break;
+                }
+
+                case FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing the file.`);
+                    break;
+                }
+            }
+        }
+
+
+        public krnRenameFile(currentFilename: string, newFilename: string): void {
+            let status = _krnDiskDriver.renameFile(currentFilename, newFilename);
+            
+            switch (status) {
+                case FileStatus.SUCCESS: {
+                    _StdOut.putText(`Successfully renamed '${currentFilename}' to file '${newFilename}'.`);
+                    break;
+                }
+
+                case FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can rename any files.`);
+                    break;
+                }
+
+                case FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File with name '${currentFilename}' not found.`);
+                    break;
+                }
+
+                case FileStatus.DUPLICATE_NAME: {
+                    _StdOut.putText(`A file with the name '${newFilename}' already exists.`);
+                    break;
+                }
+
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing the file.`);
                     break;
                 }
             }

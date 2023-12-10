@@ -252,11 +252,11 @@ var TSOS;
                     break;
                 }
                 case TSOS.FileStatus.NO_DATA_BLOCKS: {
-                    _StdOut.putText(`Inadequate number of available blocks to to write your file.`);
+                    _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
                     break;
                 }
                 case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
-                    _StdOut.putText(`Inadequate directory space to write your file.`);
+                    _StdOut.putText(`Inadequate directory space to write the file.`);
                     break;
                 }
                 case TSOS.FileStatus.FILE_EXISTS: {
@@ -264,7 +264,79 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _StdOut.putText(`An unknown error occured while writing your file.`);
+                    _StdOut.putText(`An unknown error occured while creating the file.`);
+                    break;
+                }
+            }
+        }
+        krnReadFile(filename) {
+            let output = _krnDiskDriver.readFile(filename);
+            if (output === TSOS.FileStatus.DISK_NOT_FORMATTED) {
+            }
+            else {
+                // The output is the string if there's no status
+            }
+            switch (output) {
+                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+                case TSOS.FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+                case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                    _StdOut.putText(`Error: trying to read data from an available block.`);
+                    break;
+                }
+                case TSOS.FileStatus.INVALID_BLOCK: {
+                    _StdOut.putText(`Error: trying to read from an invalid block.`);
+                    break;
+                }
+                default: {
+                    _StdOut.putText(`An unknown error occured while attempting to read the file.`);
+                    break;
+                }
+            }
+        }
+        krnWriteFile(filename, contents, raw = false) {
+            let status = _krnDiskDriver.writeFile(filename, contents, raw);
+            switch (status) {
+                case TSOS.FileStatus.SUCCESS: {
+                    _StdOut.putText(`Wrote '${contents}' to file '${filename}'.`);
+                    break;
+                }
+                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing the file.`);
+                    break;
+                }
+            }
+        }
+        krnRenameFile(currentFilename, newFilename) {
+            let status = _krnDiskDriver.renameFile(currentFilename, newFilename);
+            switch (status) {
+                case TSOS.FileStatus.SUCCESS: {
+                    _StdOut.putText(`Successfully renamed '${currentFilename}' to file '${newFilename}'.`);
+                    break;
+                }
+                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can rename any files.`);
+                    break;
+                }
+                case TSOS.FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File with name '${currentFilename}' not found.`);
+                    break;
+                }
+                case TSOS.FileStatus.DUPLICATE_NAME: {
+                    _StdOut.putText(`A file with the name '${newFilename}' already exists.`);
+                    break;
+                }
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing the file.`);
                     break;
                 }
             }

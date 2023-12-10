@@ -179,7 +179,7 @@ module TSOS {
 
             // write
             sc = new ShellCommand(this.shellWrite,
-                                  "read",
+                                  "write",
                                   "<filename> \"data\" - Writes the data to a file with the specified name");
             this.commandList[this.commandList.length] = sc;
 
@@ -713,7 +713,8 @@ module TSOS {
 
         public shellRead(args: string[]) {
             if (args.length > 0) {
-                
+                let filename = args[0];
+                _Kernel.krnReadFile(filename);
             } else {
                 _StdOut.putText("Usage: read <filename>  Please supply a file name.");
             }
@@ -721,7 +722,17 @@ module TSOS {
 
         public shellWrite(args: string[]) {
             if (args.length > 0) {
-                
+                let filename = args[0];
+                let contents = args.slice(1).join(" "); // Splice accounts for spaces inside the quotes.
+
+                console.log(contents);
+
+                if (!contents.startsWith("\"") && !contents.endsWith("\"")) {
+                    _StdOut.putText("Please put the contents in quotes.");
+                } else {
+                    contents = contents.slice(1, -1); // slice gets rid of the quotes.
+                    _Kernel.krnWriteFile(filename, contents);
+                }
             } else {
                 _StdOut.putText("Usage: write <filename> \"data\" Please supply a file name and/or data.");
             }
@@ -745,7 +756,10 @@ module TSOS {
 
         public shellRename(args: string[]) {
             if (args.length > 0) {
-                
+                let currentFilename = args[0];
+                let newFilename = args[1];
+
+                _Kernel.krnRenameFile(currentFilename, newFilename);
             } else {
                 _StdOut.putText("Usage: rename <existing filename> <new filename> Please supply a file name.");
             }

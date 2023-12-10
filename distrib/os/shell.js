@@ -98,7 +98,7 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellRead, "read", "<filename> - Reads a file with the specified name");
             this.commandList[this.commandList.length] = sc;
             // write
-            sc = new TSOS.ShellCommand(this.shellWrite, "read", "<filename> \"data\" - Writes the data to a file with the specified name");
+            sc = new TSOS.ShellCommand(this.shellWrite, "write", "<filename> \"data\" - Writes the data to a file with the specified name");
             this.commandList[this.commandList.length] = sc;
             // delete
             sc = new TSOS.ShellCommand(this.shellDelete, "delete", "<filename> - Deletes a file with the specified name");
@@ -550,6 +550,8 @@ var TSOS;
         }
         shellRead(args) {
             if (args.length > 0) {
+                let filename = args[0];
+                _Kernel.krnReadFile(filename);
             }
             else {
                 _StdOut.putText("Usage: read <filename>  Please supply a file name.");
@@ -557,6 +559,16 @@ var TSOS;
         }
         shellWrite(args) {
             if (args.length > 0) {
+                let filename = args[0];
+                let contents = args.slice(1).join(" "); // Splice accounts for spaces inside the quotes.
+                console.log(contents);
+                if (!contents.startsWith("\"") && !contents.endsWith("\"")) {
+                    _StdOut.putText("Please put the contents in quotes.");
+                }
+                else {
+                    contents = contents.slice(1, -1); // slice gets rid of the quotes.
+                    _Kernel.krnWriteFile(filename, contents);
+                }
             }
             else {
                 _StdOut.putText("Usage: write <filename> \"data\" Please supply a file name and/or data.");
@@ -578,6 +590,9 @@ var TSOS;
         }
         shellRename(args) {
             if (args.length > 0) {
+                let currentFilename = args[0];
+                let newFilename = args[1];
+                _Kernel.krnRenameFile(currentFilename, newFilename);
             }
             else {
                 _StdOut.putText("Usage: rename <existing filename> <new filename> Please supply a file name.");
