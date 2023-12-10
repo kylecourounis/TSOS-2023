@@ -694,12 +694,18 @@ module TSOS {
         // Disk commands
 
         public shellFormat(args: string[]) {
-
+            if (args.length > 0) {
+                if (args[0] == "-quick") {
+                    _Kernel.krnFormatDisk(true);
+                }
+            } else {
+                _Kernel.krnFormatDisk(false);
+            }
         }
 
         public shellCreate(args: string[]) {
             if (args.length > 0) {
-                
+                _Kernel.krnCreateFile(args[0]);
             } else {
                 _StdOut.putText("Usage: create <filename>  Please supply a file name.");
             }
@@ -747,9 +753,12 @@ module TSOS {
 
         public shellLs(args: string[]) {
             if (args.length > 0) {
-                
+                if (args[0] == '-a') {
+                    // List all files, including hidden ones
+                    _Kernel.krnListFiles(true);
+                }
             } else {
-                
+                _Kernel.krnListFiles(false);
             }
         }
     }

@@ -35,6 +35,11 @@ var TSOS;
             _krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
             _krnKeyboardDriver.driverEntry(); // Call the driverEntry() initialization routine.
             this.krnTrace(_krnKeyboardDriver.status);
+            // Load the Disk Device Driver
+            this.krnTrace("Loading the disk device driver.");
+            _krnDiskDriver = new TSOS.DeviceDriverDisk(); // Construct it.
+            _krnDiskDriver.driverEntry(); // Call the driverEntry() initialization routine.
+            this.krnTrace(_krnDiskDriver.status);
             //
             // ... more?
             //
@@ -193,6 +198,75 @@ var TSOS;
                 _PCBQueue.clear();
                 _StdOut.putText("Cleared memory.");
                 _StdOut.advanceLine();
+            }
+        }
+        krnFormatDisk(quick) {
+            let files = _krnDiskDriver.listFiles();
+            if (files !== null && files.find(file => file.name.endsWith(".swap"))) {
+                // Cannot format if there are swap files on the disk
+                _StdOut.putText('Disk cannot be formatted while there are swap files present!');
+            }
+            else {
+                _krnDiskDriver.formatDisk(quick);
+                _StdOut.putText('Disk has been formatted.');
+                this.krnTrace('Disk formatted');
+            }
+        }
+        krnListFiles(showAll) {
+            let files = _krnDiskDriver.listFiles();
+            // Do a null check to see if we've formatted
+            if (files) {
+                for (let i = 0; i < files.length; i++) {
+                    let file = files[i];
+                    // The format of the string to print
+                    let printString = file.name + `, date created: ${file.dateCreated}`;
+                    // Check our special file types
+                    if (file.name.startsWith(".") || file.name.endsWith(".swap")) {
+                        if (showAll) {
+                            _StdOut.putText(printString);
+                            _StdOut.advanceLine();
+                        }
+                        else {
+                            continue;
+                        }
+                    }
+                    else {
+                        _StdOut.putText(printString);
+                        _StdOut.advanceLine();
+                    }
+                }
+            }
+            else {
+                _StdOut.putText(`The disk must be formatted before you can list the files on it.`);
+            }
+        }
+        krnCreateFile(filename) {
+            let status = _krnDiskDriver.createFile(filename);
+            switch (status) {
+                case TSOS.FileStatus.SUCCESS: {
+                    _StdOut.putText(`Created file '${filename}'.`);
+                    break;
+                }
+                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write files.`);
+                    break;
+                }
+                case TSOS.FileStatus.NO_DATA_BLOCKS: {
+                    _StdOut.putText(`Inadequate number of available blocks to to write your file.`);
+                    break;
+                }
+                case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
+                    _StdOut.putText(`Inadequate directory space to write your file.`);
+                    break;
+                }
+                case TSOS.FileStatus.FILE_EXISTS: {
+                    _StdOut.putText(`A file with that name already exists!`);
+                    break;
+                }
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing your file.`);
+                    break;
+                }
             }
         }
         //

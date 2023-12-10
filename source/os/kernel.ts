@@ -248,6 +248,85 @@ module TSOS {
                 _StdOut.advanceLine();
             }
         }
+
+        public krnFormatDisk(quick: boolean): void {
+            let files = _krnDiskDriver.listFiles();
+            
+            if (files !== null && files.find(file => file.name.endsWith(".swap"))) {
+                // Cannot format if there are swap files on the disk
+                _StdOut.putText('Disk cannot be formatted while there are swap files present!');
+            } else {
+                _krnDiskDriver.formatDisk(quick);
+
+                _StdOut.putText('Disk has been formatted.');
+                this.krnTrace('Disk formatted');
+            }
+        }
+
+        public krnListFiles(showAll: boolean): void {
+            let files = _krnDiskDriver.listFiles();
+
+            // Do a null check to see if we've formatted
+            if (files) {
+                for (let i = 0; i < files.length; i++) {
+                    let file = files[i];
+    
+                    // The format of the string to print
+                    let printString = file.name + `, date created: ${file.dateCreated}`;
+
+                    // Check our special file types
+                    if (file.name.startsWith(".") || file.name.endsWith(".swap")) {
+                        if (showAll) {
+                            _StdOut.putText(printString);
+                            _StdOut.advanceLine();
+                        } else {
+                            continue;
+                        }
+                    } else {
+                        _StdOut.putText(printString);
+                        _StdOut.advanceLine();
+                    }
+                }
+            } else {
+                _StdOut.putText(`The disk must be formatted before you can list the files on it.`);
+            }
+        }
+
+        public krnCreateFile(filename: string): void {
+            let status = _krnDiskDriver.createFile(filename);
+            
+            switch (status) {
+                case FileStatus.SUCCESS: {
+                    _StdOut.putText(`Created file '${filename}'.`);
+                    break;
+                }
+
+                case FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write files.`);
+                    break;
+                }
+
+                case FileStatus.NO_DATA_BLOCKS: {
+                    _StdOut.putText(`Inadequate number of available blocks to to write your file.`);
+                    break;
+                }
+
+                case FileStatus.NO_DIRECTORY_SPACE: {
+                    _StdOut.putText(`Inadequate directory space to write your file.`);
+                    break;
+                }
+            
+                case FileStatus.FILE_EXISTS: {
+                    _StdOut.putText(`A file with that name already exists!`);
+                    break;
+                }
+
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing your file.`);
+                    break;
+                }
+            }
+        }
         
         //
         // Interrupt Handling
