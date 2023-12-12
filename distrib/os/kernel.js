@@ -319,6 +319,47 @@ var TSOS;
                 }
             }
         }
+        krnCopyFile(filename, newFilename) {
+            let status = _krnDiskDriver.copyFile(filename, newFilename);
+            switch (status) {
+                case TSOS.FileStatus.SUCCESS: {
+                    _StdOut.putText(`Copied '${filename}' to '${newFilename}'.`);
+                    break;
+                }
+                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+                case TSOS.FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+                case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                    _StdOut.putText(`Error: trying to read data from an available block.`);
+                    break;
+                }
+                case TSOS.FileStatus.INVALID_BLOCK: {
+                    _StdOut.putText(`Error: trying to read from an invalid block.`);
+                    break;
+                }
+                case TSOS.FileStatus.NO_DATA_BLOCKS: {
+                    _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
+                    break;
+                }
+                case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
+                    _StdOut.putText(`Inadequate directory space to write the file.`);
+                    break;
+                }
+                case TSOS.FileStatus.FILE_EXISTS: {
+                    _StdOut.putText(`A file with that name already exists!`);
+                    break;
+                }
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing the file.`);
+                    break;
+                }
+            }
+        }
         krnRenameFile(currentFilename, newFilename) {
             let status = _krnDiskDriver.renameFile(currentFilename, newFilename);
             switch (status) {

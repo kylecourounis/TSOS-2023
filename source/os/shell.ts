@@ -725,8 +725,6 @@ module TSOS {
                 let filename = args[0];
                 let contents = args.slice(1).join(" "); // Splice accounts for spaces inside the quotes.
 
-                console.log(contents);
-
                 if (!contents.startsWith("\"") && !contents.endsWith("\"")) {
                     _StdOut.putText("Please put the contents in quotes.");
                 } else {
@@ -748,7 +746,15 @@ module TSOS {
 
         public shellCopy(args: string[]) {
             if (args.length > 0) {
-                
+                let filename = args[0];
+
+                if (args.length > 1) {
+                    let newFilename = args[1]; 
+
+                    _Kernel.krnCopyFile(filename, newFilename);
+                } else {
+                    _StdOut.putText("Please supply a filename to copy to.");
+                }
             } else {
                 _StdOut.putText("Usage: copy <existing filename> <new filename> Please supply a file name.");
             }

@@ -292,6 +292,41 @@ var TSOS;
                 return FileStatus.DISK_NOT_FORMATTED;
             }
         }
+        copyFile(filename, newFilename) {
+            if (this.formatted) {
+                let createStatus = this.createFile(newFilename);
+                switch (createStatus) {
+                    case FileStatus.SUCCESS: {
+                        let read = this.readFile(filename);
+                        switch (read) {
+                            case FileStatus.FILE_NOT_FOUND: {
+                                return FileStatus.FILE_NOT_FOUND;
+                            }
+                            case FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                                return FileStatus.READ_FROM_AVAILABLE_BLOCK;
+                            }
+                            case FileStatus.INVALID_BLOCK: {
+                                return FileStatus.INVALID_BLOCK;
+                            }
+                            case FileStatus.DISK_NOT_FORMATTED: {
+                                return FileStatus.DISK_NOT_FORMATTED;
+                            }
+                            default: {
+                                this.writeFile(newFilename, read, false);
+                                return FileStatus.SUCCESS;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        return createStatus;
+                    }
+                }
+            }
+            else {
+                return FileStatus.DISK_NOT_FORMATTED;
+            }
+        }
         listFiles() {
             let fileList = [];
             if (this.formatted) {

@@ -391,6 +391,57 @@ module TSOS {
         }
 
 
+        public krnCopyFile(filename: string, newFilename: string): void {
+            let status = _krnDiskDriver.copyFile(filename, newFilename);
+            
+            switch (status) {
+                case FileStatus.SUCCESS: {
+                    _StdOut.putText(`Copied '${filename}' to '${newFilename}'.`);
+                    break;
+                }
+
+                case FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+
+                case FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+
+                case FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                    _StdOut.putText(`Error: trying to read data from an available block.`);
+                    break;
+                }
+
+                case FileStatus.INVALID_BLOCK: {
+                    _StdOut.putText(`Error: trying to read from an invalid block.`);
+                    break;
+                }
+
+                case FileStatus.NO_DATA_BLOCKS: {
+                    _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
+                    break;
+                }
+
+                case FileStatus.NO_DIRECTORY_SPACE: {
+                    _StdOut.putText(`Inadequate directory space to write the file.`);
+                    break;
+                }
+            
+                case FileStatus.FILE_EXISTS: {
+                    _StdOut.putText(`A file with that name already exists!`);
+                    break;
+                }
+
+                default: {
+                    _StdOut.putText(`An unknown error occured while writing the file.`);
+                    break;
+                }
+            }
+        }
+
         public krnRenameFile(currentFilename: string, newFilename: string): void {
             let status = _krnDiskDriver.renameFile(currentFilename, newFilename);
             
