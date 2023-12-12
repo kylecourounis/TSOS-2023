@@ -373,6 +373,16 @@ module TSOS {
                     break;
                 }
 
+                case FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+
+                case FileStatus.INVALID_BLOCK: {
+                    _StdOut.putText(`Block is not available.`);
+                    break;
+                }
+                
                 default: {
                     _StdOut.putText(`An unknown error occured while writing the file.`);
                     break;

@@ -271,11 +271,6 @@ var TSOS;
         }
         krnReadFile(filename) {
             let output = _krnDiskDriver.readFile(filename);
-            if (output === TSOS.FileStatus.DISK_NOT_FORMATTED) {
-            }
-            else {
-                // The output is the string if there's no status
-            }
             switch (output) {
                 case TSOS.FileStatus.DISK_NOT_FORMATTED: {
                     _StdOut.putText(`The disk must be formatted before you can write to any file.`);
@@ -294,7 +289,7 @@ var TSOS;
                     break;
                 }
                 default: {
-                    _StdOut.putText(`An unknown error occured while attempting to read the file.`);
+                    _StdOut.putText(output);
                     break;
                 }
             }
@@ -308,6 +303,14 @@ var TSOS;
                 }
                 case TSOS.FileStatus.DISK_NOT_FORMATTED: {
                     _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+                case TSOS.FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+                case TSOS.FileStatus.INVALID_BLOCK: {
+                    _StdOut.putText(`Block is not available.`);
                     break;
                 }
                 default: {
