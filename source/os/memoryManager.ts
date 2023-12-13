@@ -58,5 +58,10 @@ module TSOS {
                 this.availableSegments[pcb.segment] = true;
             }
         }
+
+
+        public isSegmentAvailable() {
+            return this.availableSegments.includes(true); 
+        }
     }
 }

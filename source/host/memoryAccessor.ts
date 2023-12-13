@@ -147,6 +147,22 @@ module TSOS {
         }
 
         /**
+         * Dumps memory between the specified base and limit.
+         * @param base The base register.
+         * @param limit The limit register.
+         * @returns The array with the contents of memory between the base and the limit register.
+         */
+        public getRange(base: number, limit: number) {
+            let memArr = [];
+
+            for (let i = base; i < limit; i++) {
+                memArr.push(_Memory.memory[i]); // don't want to set the MAR and mess anything up, so not calling readImmediate
+            }
+
+            return memArr;
+        }
+
+        /**
          * Static helper method that utilizes bitwise operators to flip endianess. 
          * @param value The integer we are flipping
          * @returns The flipped integer

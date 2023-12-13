@@ -89,7 +89,7 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<value> - Sets the Round Robin quantum.");
             this.commandList[this.commandList.length] = sc;
             // format
-            sc = new TSOS.ShellCommand(this.shellFormat, "format", "- Initialize all blocks in all sectors in all tracks");
+            sc = new TSOS.ShellCommand(this.shellFormat, "format", "[-quick/-full] - Initialize all blocks in all sectors in all tracks");
             this.commandList[this.commandList.length] = sc;
             // create
             sc = new TSOS.ShellCommand(this.shellCreate, "create", "<filename> - Creates a file with the specified name");
@@ -532,12 +532,19 @@ var TSOS;
         // Disk commands
         shellFormat(args) {
             if (args.length > 0) {
-                if (args[0] == "-quick") {
-                    _Kernel.krnFormatDisk(true);
+                switch (args[0]) {
+                    case "-quick": {
+                        _Kernel.krnFormatDisk(true);
+                        break;
+                    }
+                    case "-full": {
+                        _Kernel.krnFormatDisk(false);
+                        break;
+                    }
                 }
             }
             else {
-                _Kernel.krnFormatDisk(false);
+                _StdOut.putText("Usage: format [-quick] [-full] Please specify a mode");
             }
         }
         shellCreate(args) {
@@ -575,6 +582,8 @@ var TSOS;
         }
         shellDelete(args) {
             if (args.length > 0) {
+                let filename = args[0];
+                _Kernel.krnDeleteFile(filename);
             }
             else {
                 _StdOut.putText("Usage: delete <filename>  Please supply a file name.");

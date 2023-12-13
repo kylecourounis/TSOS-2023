@@ -353,7 +353,7 @@ module TSOS {
                 }
 
                 default: {
-                    _StdOut.putText(output);
+                    _StdOut.putText(output.join(""));
                     break;
                 }
             }
@@ -468,6 +468,37 @@ module TSOS {
 
                 default: {
                     _StdOut.putText(`An unknown error occured while writing the file.`);
+                    break;
+                }
+            }
+        }
+
+        public krnDeleteFile(filename: string): void {
+            let status = _krnDiskDriver.deleteFile(filename);
+                        
+            switch (status) {
+                case FileStatus.SUCCESS: {
+                    _StdOut.putText(`Deleted '${filename}'`);
+                    break;
+                }
+
+                case FileStatus.DISK_NOT_FORMATTED: {
+                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                    break;
+                }
+
+                case FileStatus.FILE_NOT_FOUND: {
+                    _StdOut.putText(`File not found.`);
+                    break;
+                }
+
+                case FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                    _StdOut.putText(`Tried to delete an already available block.`);
+                    break;
+                }
+
+                default: {
+                    _StdOut.putText(`An unknown error occured while attempting to delete the file.`);
                     break;
                 }
             }

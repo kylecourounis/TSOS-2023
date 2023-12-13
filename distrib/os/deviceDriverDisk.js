@@ -10,7 +10,7 @@ var TSOS;
     const BLOCKS = 8;
     const HEADER_SIZE = 4;
     const BLOCK_SIZE = 64;
-    const FILE_NAME_LENGTH = 54; // because we're storing the date as well
+    const FILE_NAME_LENGTH = 54; // because we're storing the date as well as the number of blocks taken
     // Extends DeviceDriver
     class DeviceDriverDisk extends TSOS.DeviceDriver {
         formatted = false;
@@ -93,7 +93,7 @@ var TSOS;
                         newEntry += "02";
                         // Save it on the disk in both the directory portion and the file portion
                         sessionStorage.setItem(firstAvailDir, newEntry);
-                        sessionStorage.setItem(firstAvailFile, "01000000".padEnd(BLOCK_SIZE * 2, "0"));
+                        sessionStorage.setItem(firstAvailFile, "01------".padEnd(BLOCK_SIZE * 2, "0"));
                         return FileStatus.SUCCESS;
                     }
                     else {
@@ -105,8 +105,8 @@ var TSOS;
                 return FileStatus.DISK_NOT_FORMATTED;
             }
         }
-        readFile(filename) {
-            let output = "";
+        readFile(filename, raw = false) {
+            let output = [];
             if (this.formatted) {
                 let block = this.getFirstBlockForFile(filename);
                 if (block !== "") {
@@ -124,7 +124,12 @@ var TSOS;
                                             isAtEnd = true;
                                         }
                                         else {
-                                            output += String.fromCharCode(parseInt(hexVal, 16));
+                                            if (!raw) {
+                                                output.push(String.fromCharCode(parseInt(hexVal, 16)));
+                                            }
+                                            else {
+                                                output.push(parseInt(hexVal, 16));
+                                            }
                                         }
                                     }
                                 }
@@ -202,7 +207,7 @@ var TSOS;
                     let needsNextBlock = true;
                     let remainingContent = contentsAsHex;
                     // Find it interesting how much of this code I was just able to reuse from elsewhere in the file.
-                    // The only tricky part was chaining it together to keep writing. 
+                    // The tricky part was chaining it together to keep writing. 
                     // It was easier to read it back than it was to write. 
                     while (remainingContent.length > 0) {
                         if (sessionStorage.getItem(block).charAt(1) === "0") {
@@ -220,7 +225,6 @@ var TSOS;
                             if (remainingContent.length > 0) {
                                 let newTSB = "";
                                 if (needsNextBlock) {
-                                    // Use the next block in the link because we know it is already reserved for the given file
                                     let linkedBlock = sessionStorage.getItem(block).substring(2, 8);
                                     newTSB = `${linkedBlock.charAt(1)}:${linkedBlock.charAt(3)}:${linkedBlock.charAt(5)}`;
                                 }
@@ -233,32 +237,10 @@ var TSOS;
                                     return FileStatus.PARTIALLY_WRITTEN;
                                 }
                                 else {
-                                    // We need to chain this file block to the next one
                                     let updatedFileBlock = sessionStorage.getItem(block).substring(0, 2) + "0" + newTSB.charAt(0) + "0" + newTSB.charAt(2) + "0" + newTSB.charAt(4) + sessionStorage.getItem(block).substring(8);
                                     sessionStorage.setItem(block, updatedFileBlock);
-                                    // Set the status of the new block to be in use and as the end of the file
                                     sessionStorage.setItem(newTSB, "01" + sessionStorage.getItem(newTSB).substring(2, 8) + "0".repeat((BLOCK_SIZE - HEADER_SIZE) * 2));
-                                    // Set the current TSB to the new TSB
                                     block = newTSB;
-                                    if (!needsNextBlock) {
-                                        // We took a block from storage, so we have to make sure that file restoration does not get screwed up in case we took a deleted file's first block
-                                        for (let s = 0; s < SECTORS; s++) {
-                                            for (let b = 0; b < BLOCKS; b++) {
-                                                if (s === 0 && b === 0) {
-                                                    // skip the MBR
-                                                    continue;
-                                                }
-                                                let entry = sessionStorage.getItem(`0:${s}:${b}`);
-                                                // Check to see if the directory entry is a deleted file
-                                                if (entry.charAt(1) === "0" && entry.substring(8, 10) !== "00") {
-                                                    let directoryFirstBlock = `${entry.charAt(3)}:${entry.charAt(5)}:${entry.charAt(7)}`;
-                                                    if (directoryFirstBlock === block) {
-                                                        sessionStorage.setItem(`0:${s}:${b}`, "00------" + entry.substring(8));
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
                                 }
                                 blocksUsed++;
                             }
@@ -312,15 +294,49 @@ var TSOS;
                                 return FileStatus.DISK_NOT_FORMATTED;
                             }
                             default: {
-                                this.writeFile(newFilename, read, false);
+                                this.writeFile(newFilename, read.join(""), false);
                                 return FileStatus.SUCCESS;
                             }
                         }
-                        break;
                     }
                     default: {
                         return createStatus;
                     }
+                }
+            }
+            else {
+                return FileStatus.DISK_NOT_FORMATTED;
+            }
+        }
+        deleteFile(filename) {
+            if (this.formatted) {
+                let tsb = this.getDirectoryEntry(filename);
+                if (tsb !== "") {
+                    let entry = sessionStorage.getItem(tsb);
+                    if (entry.charAt(1) === "0") {
+                        return FileStatus.READ_FROM_AVAILABLE_BLOCK;
+                    }
+                    else {
+                        let dataTSB = `${entry.charAt(3)}:${entry.charAt(5)}:${entry.charAt(7)}`;
+                        // Mark as available
+                        sessionStorage.setItem(tsb, "00" + entry.substring(2));
+                        while (dataTSB !== "-:-:-") {
+                            let data = sessionStorage.getItem(dataTSB);
+                            console.log(`${dataTSB} - ${data}`);
+                            if (data.charAt(1) !== "0") {
+                                sessionStorage.setItem(dataTSB, "00" + data.substring(2));
+                                // Get next link in the chain
+                                dataTSB = `${data.charAt(3)}:${data.charAt(5)}:${data.charAt(7)}`;
+                            }
+                            else {
+                                return FileStatus.OTHER_ERROR;
+                            }
+                        }
+                        return FileStatus.SUCCESS;
+                    }
+                }
+                else {
+                    return FileStatus.FILE_NOT_FOUND;
                 }
             }
             else {
@@ -364,7 +380,7 @@ var TSOS;
                             let date = `${month}/${day}/${year}`;
                             // Create the file entry
                             // Made this an object so that it's appendable
-                            // I think I'd still have to update the file name length if I wanted any more metadata
+                            // I think I'd still have to lower the maximum file name length if I wanted any more metadata
                             let fileEntry = {
                                 name: filename,
                                 dateCreated: date
@@ -375,7 +391,7 @@ var TSOS;
                 }
             }
             else {
-                // Set the list to something that marks it as the disk not being formatted
+                // Using null to so we can do a null check to see if the disk is formatted
                 fileList = null;
             }
             return fileList;
@@ -479,6 +495,7 @@ var TSOS;
         FileStatus[FileStatus["INVALID_BLOCK"] = 7] = "INVALID_BLOCK";
         FileStatus[FileStatus["DUPLICATE_NAME"] = 8] = "DUPLICATE_NAME";
         FileStatus[FileStatus["PARTIALLY_WRITTEN"] = 9] = "PARTIALLY_WRITTEN";
+        FileStatus[FileStatus["OTHER_ERROR"] = 10] = "OTHER_ERROR";
     })(FileStatus = TSOS.FileStatus || (TSOS.FileStatus = {}));
 })(TSOS || (TSOS = {}));
 //# sourceMappingURL=deviceDriverDisk.js.map

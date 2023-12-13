@@ -46,6 +46,9 @@ var TSOS;
                 this.availableSegments[pcb.segment] = true;
             }
         }
+        isSegmentAvailable() {
+            return this.availableSegments.includes(true);
+        }
     }
     TSOS.MemoryManager = MemoryManager;
 })(TSOS || (TSOS = {}));
