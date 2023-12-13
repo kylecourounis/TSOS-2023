@@ -82,18 +82,7 @@ var TSOS;
          */
         readImmediate(address) {
             this.memory.setMAR(address);
-            if (_CurrentProcess != null) {
-                if (address > _CurrentProcess.limit) {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
-                }
-                else {
-                    this.setMAR(address);
-                    this.memory.read();
-                }
-            }
-            else {
-                this.memory.read();
-            }
+            this.memory.read();
         }
         /**
          * Sets the MAR and MDR to the specified values and forcibly writes to memory.
@@ -101,21 +90,9 @@ var TSOS;
          * @param value The value to place in the MDR.
          */
         writeImmediate(address, value) {
-            if (_CurrentProcess != null) {
-                if (address > _CurrentProcess.limit) {
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
-                }
-                else {
-                    this.setMAR(address);
-                    this.memory.setMDR(value);
-                    this.memory.write();
-                }
-            }
-            else {
-                this.memory.setMAR(address);
-                this.memory.setMDR(value);
-                this.memory.write();
-            }
+            this.memory.setMAR(address);
+            this.memory.setMDR(value);
+            this.memory.write();
         }
         /**
          * Sets the LOB of the MAR.

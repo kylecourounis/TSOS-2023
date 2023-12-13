@@ -10,7 +10,8 @@ var TSOS;
                 _StdOut.putText("Program is too large!");
                 return;
             }
-            if (_PCBQueue.getSize() < 3) {
+            let progs = _PCBList.filter(pcb => pcb.segment !== -1); // -1 indicates it's on disk
+            if (progs.length < 3) {
                 let segment = -1;
                 for (let i = 0; i < this.availableSegments.length; i++) {
                     if (this.availableSegments[i] == true) {
@@ -25,26 +26,26 @@ var TSOS;
                 pcb.segment = segment;
                 pcb.base = segment * 0x100;
                 pcb.limit = (segment * 0x100) + 0x100 - 1;
-                return true;
+                console.log(program);
+                console.log(_MemAccessor.getRange(pcb.base, pcb.limit));
+                return segment;
             }
             else {
-                return false;
+                return -1;
             }
         }
         deallocateTerminatedProcesses() {
             for (let i = 0; i < _PCBQueue.getSize(); i++) {
                 let pcb = _PCBQueue.q[i];
                 if (pcb.state === TSOS.State.TERMINATED) {
-                    _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
+                    _Memory.clearMemory(pcb.base, pcb.limit); // clear the portion of memory where this whole program is stored.
                     this.availableSegments[pcb.segment] = true;
                 }
             }
         }
         deallocateMemory(pcb) {
-            if (pcb.state === TSOS.State.TERMINATED) {
-                _Memory.clearMemory(pcb.base, 0x100); // clear the portion of memory where this whole program is stored.
-                this.availableSegments[pcb.segment] = true;
-            }
+            _Memory.clearMemory(pcb.base, pcb.limit); // clear the portion of memory where this whole program is stored.
+            this.availableSegments[pcb.segment] = true;
         }
         isSegmentAvailable() {
             return this.availableSegments.includes(true);

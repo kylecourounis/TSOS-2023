@@ -23,6 +23,7 @@ var TSOS;
             _MemoryManager = new TSOS.MemoryManager(); // The memory manager
             _CpuScheduler = new TSOS.CpuScheduler();
             _CpuDispatcher = new TSOS.CpuDispatcher();
+            _Swap = new TSOS.Swap();
             // Initialize the console.
             _Console = new TSOS.Console(); // The command line interface / console I/O device.
             _Console.init();
@@ -110,8 +111,8 @@ var TSOS;
         krnInitProcess(program, baseAddr = 0) {
             let pcb = new TSOS.PCB();
             pcb.state = TSOS.State.RESIDENT;
-            let success = _MemoryManager.allocateMemoryForProgram(pcb, program);
-            if (success) {
+            let segment = _MemoryManager.allocateMemoryForProgram(pcb, program);
+            if (segment > -1) {
                 TSOS.PCB.pidStore++; // Increment PID counter only if we successfully create it
                 _PCBList.push(pcb); // This is what we're actually using for the moment
                 _StdOut.putText(`\nCreated process with PID ${pcb.pid}`);
@@ -119,7 +120,13 @@ var TSOS;
                 TSOS.Control.updateMemoryView();
             }
             else {
-                _StdOut.putText("You cannot load any more programs - memory is full.");
+                TSOS.PCB.pidStore++; // Increment PID counter only if we successfully create it
+                _PCBList.push(pcb); // This is what we're actually using for the moment
+                pcb.segment = -1;
+                pcb.location = TSOS.Location.DISK_DRIVE;
+                this.krnCreateSwapFile(pcb, program);
+                _StdOut.putText(`\nCreated process with PID ${pcb.pid} (on disk)`);
+                TSOS.Control.createProcessRow(pcb);
             }
         }
         krnRunProcess(pid) {
@@ -153,12 +160,13 @@ var TSOS;
                 }
                 else {
                     // Find the process that needs to be terminated
-                    for (let i = 0; i < _PCBQueue.getSize(); i++) {
-                        let process = _PCBQueue.dequeue();
+                    /* for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                        let process: PCB = _PCBQueue.dequeue();
+
                         if (process.pid !== pcb.pid) {
                             _PCBQueue.enqueue(process);
                         }
-                    }
+                    } */
                 }
             }
             if (pcb) {
@@ -227,7 +235,7 @@ var TSOS;
                             _StdOut.advanceLine();
                         }
                         else {
-                            continue;
+                            continue; // Skip if we are not showing all files
                         }
                     }
                     else {
@@ -241,173 +249,233 @@ var TSOS;
             }
         }
         krnCreateFile(filename) {
-            let status = _krnDiskDriver.createFile(filename);
-            switch (status) {
-                case TSOS.FileStatus.SUCCESS: {
-                    _StdOut.putText(`Created file '${filename}'.`);
-                    break;
-                }
-                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
-                    _StdOut.putText(`The disk must be formatted before you can write files.`);
-                    break;
-                }
-                case TSOS.FileStatus.NO_DATA_BLOCKS: {
-                    _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
-                    break;
-                }
-                case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
-                    _StdOut.putText(`Inadequate directory space to write the file.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_EXISTS: {
-                    _StdOut.putText(`A file with that name already exists!`);
-                    break;
-                }
-                default: {
-                    _StdOut.putText(`An unknown error occured while creating the file.`);
-                    break;
+            if (filename.endsWith(".swap")) {
+                _StdOut.putText("Swap files are reserved for the system.");
+            }
+            else {
+                let status = _krnDiskDriver.createFile(filename);
+                switch (status) {
+                    case TSOS.FileStatus.SUCCESS: {
+                        _StdOut.putText(`Created file '${filename}'.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                        _StdOut.putText(`The disk must be formatted before you can write files.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.NO_DATA_BLOCKS: {
+                        _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
+                        _StdOut.putText(`Inadequate directory space to write the file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_EXISTS: {
+                        _StdOut.putText(`A file with that name already exists!`);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText(`An unknown error occured while creating the file.`);
+                        break;
+                    }
                 }
             }
         }
         krnReadFile(filename) {
-            let output = _krnDiskDriver.readFile(filename);
-            switch (output) {
-                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
-                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_NOT_FOUND: {
-                    _StdOut.putText(`File not found.`);
-                    break;
-                }
-                case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
-                    _StdOut.putText(`Error: trying to read data from an available block.`);
-                    break;
-                }
-                case TSOS.FileStatus.INVALID_BLOCK: {
-                    _StdOut.putText(`Error: trying to read from an invalid block.`);
-                    break;
-                }
-                default: {
-                    _StdOut.putText(output.join(""));
-                    break;
+            if (filename.endsWith(".swap")) {
+                _StdOut.putText("You can't read the contents of a swap file!");
+            }
+            else {
+                let output = _krnDiskDriver.readFile(filename);
+                switch (output) {
+                    case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                        _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_NOT_FOUND: {
+                        _StdOut.putText(`File not found.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                        _StdOut.putText(`Error: trying to read data from an available block.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.INVALID_BLOCK: {
+                        _StdOut.putText(`Error: trying to read from an invalid block.`);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText(output);
+                        break;
+                    }
                 }
             }
         }
         krnWriteFile(filename, contents, raw = false) {
-            let status = _krnDiskDriver.writeFile(filename, contents, raw);
-            switch (status) {
-                case TSOS.FileStatus.SUCCESS: {
-                    _StdOut.putText(`Wrote '${contents}' to file '${filename}'.`);
-                    break;
-                }
-                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
-                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_NOT_FOUND: {
-                    _StdOut.putText(`File not found.`);
-                    break;
-                }
-                case TSOS.FileStatus.INVALID_BLOCK: {
-                    _StdOut.putText(`Block is not available.`);
-                    break;
-                }
-                default: {
-                    _StdOut.putText(`An unknown error occured while writing the file.`);
-                    break;
+            if (filename.endsWith(".swap")) {
+                _StdOut.putText("You can't write to swap files!");
+            }
+            else {
+                let status = _krnDiskDriver.writeFile(filename, contents, raw);
+                switch (status) {
+                    case TSOS.FileStatus.SUCCESS: {
+                        _StdOut.putText(`Wrote '${contents}' to file '${filename}'.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                        _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_NOT_FOUND: {
+                        _StdOut.putText(`File not found.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.INVALID_BLOCK: {
+                        _StdOut.putText(`Block is not available.`);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText(`An unknown error occured while writing the file.`);
+                        break;
+                    }
                 }
             }
         }
         krnCopyFile(filename, newFilename) {
-            let status = _krnDiskDriver.copyFile(filename, newFilename);
-            switch (status) {
-                case TSOS.FileStatus.SUCCESS: {
-                    _StdOut.putText(`Copied '${filename}' to '${newFilename}'.`);
-                    break;
-                }
-                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
-                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_NOT_FOUND: {
-                    _StdOut.putText(`File not found.`);
-                    break;
-                }
-                case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
-                    _StdOut.putText(`Error: trying to read data from an available block.`);
-                    break;
-                }
-                case TSOS.FileStatus.INVALID_BLOCK: {
-                    _StdOut.putText(`Error: trying to read from an invalid block.`);
-                    break;
-                }
-                case TSOS.FileStatus.NO_DATA_BLOCKS: {
-                    _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
-                    break;
-                }
-                case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
-                    _StdOut.putText(`Inadequate directory space to write the file.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_EXISTS: {
-                    _StdOut.putText(`A file with that name already exists!`);
-                    break;
-                }
-                default: {
-                    _StdOut.putText(`An unknown error occured while writing the file.`);
-                    break;
+            if (filename.endsWith(".swap")) {
+                _StdOut.putText("You can't copy swap files!");
+            }
+            else {
+                let status = _krnDiskDriver.copyFile(filename, newFilename);
+                switch (status) {
+                    case TSOS.FileStatus.SUCCESS: {
+                        _StdOut.putText(`Copied '${filename}' to '${newFilename}'.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                        _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_NOT_FOUND: {
+                        _StdOut.putText(`File not found.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                        _StdOut.putText(`Error: trying to read data from an available block.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.INVALID_BLOCK: {
+                        _StdOut.putText(`Error: trying to read from an invalid block.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.NO_DATA_BLOCKS: {
+                        _StdOut.putText(`Inadequate number of available blocks to to write the file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.NO_DIRECTORY_SPACE: {
+                        _StdOut.putText(`Inadequate directory space to write the file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_EXISTS: {
+                        _StdOut.putText(`A file with that name already exists!`);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText(`An unknown error occured while writing the file.`);
+                        break;
+                    }
                 }
             }
         }
         krnRenameFile(currentFilename, newFilename) {
-            let status = _krnDiskDriver.renameFile(currentFilename, newFilename);
-            switch (status) {
-                case TSOS.FileStatus.SUCCESS: {
-                    _StdOut.putText(`Successfully renamed '${currentFilename}' to file '${newFilename}'.`);
-                    break;
-                }
-                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
-                    _StdOut.putText(`The disk must be formatted before you can rename any files.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_NOT_FOUND: {
-                    _StdOut.putText(`File with name '${currentFilename}' not found.`);
-                    break;
-                }
-                case TSOS.FileStatus.DUPLICATE_NAME: {
-                    _StdOut.putText(`A file with the name '${newFilename}' already exists.`);
-                    break;
-                }
-                default: {
-                    _StdOut.putText(`An unknown error occured while writing the file.`);
-                    break;
+            if (currentFilename.endsWith(".swap")) {
+                _StdOut.putText("You can't rename swap files!");
+            }
+            else {
+                let status = _krnDiskDriver.renameFile(currentFilename, newFilename);
+                switch (status) {
+                    case TSOS.FileStatus.SUCCESS: {
+                        _StdOut.putText(`Successfully renamed '${currentFilename}' to file '${newFilename}'.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                        _StdOut.putText(`The disk must be formatted before you can rename any files.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_NOT_FOUND: {
+                        _StdOut.putText(`File with name '${currentFilename}' not found.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.DUPLICATE_NAME: {
+                        _StdOut.putText(`A file with the name '${newFilename}' already exists.`);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText(`An unknown error occured while writing the file.`);
+                        break;
+                    }
                 }
             }
         }
         krnDeleteFile(filename) {
-            let status = _krnDiskDriver.deleteFile(filename);
-            console.log(status);
-            switch (status) {
+            if (filename.endsWith(".swap")) {
+                _StdOut.putText("You can't delete swap files!");
+            }
+            else {
+                let status = _krnDiskDriver.deleteFile(filename);
+                switch (status) {
+                    case TSOS.FileStatus.SUCCESS: {
+                        _StdOut.putText(`Deleted '${filename}'`);
+                        break;
+                    }
+                    case TSOS.FileStatus.DISK_NOT_FORMATTED: {
+                        _StdOut.putText(`The disk must be formatted before you can write to any file.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.FILE_NOT_FOUND: {
+                        _StdOut.putText(`File not found.`);
+                        break;
+                    }
+                    case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                        _StdOut.putText(`Tried to delete an already available block.`);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText(`An unknown error occured while attempting to delete the file.`);
+                        break;
+                    }
+                }
+            }
+        }
+        krnCreateSwapFile(pcb, program = null) {
+            let dump = program;
+            if (pcb.segment > -1) {
+                dump = _MemAccessor.getRange(pcb.base, pcb.limit);
+            }
+            let createStatus = _krnDiskDriver.createFile(pcb.swapFile);
+            switch (createStatus) {
                 case TSOS.FileStatus.SUCCESS: {
-                    _StdOut.putText(`Deleted '${filename}'`);
-                    break;
-                }
-                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
-                    _StdOut.putText(`The disk must be formatted before you can write to any file.`);
-                    break;
-                }
-                case TSOS.FileStatus.FILE_NOT_FOUND: {
-                    _StdOut.putText(`File not found.`);
-                    break;
-                }
-                case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
-                    _StdOut.putText(`Tried to delete an already available block.`);
+                    this.krnTrace(`Created swap file '${pcb.swapFile}'.`);
                     break;
                 }
                 default: {
-                    _StdOut.putText(`An unknown error occured while attempting to delete the file.`);
+                    // Kill the OS if there's ever any error creating
+                    this.krnTrapError('Error while creating a swap file.');
+                    return;
+                }
+            }
+            // Nice way to use map function: https://www.geeksforgeeks.org/how-to-convert-byte-array-to-string-in-javascript/
+            let progHex = dump.map((byte) => byte.toString(16).toUpperCase().padStart(2, "0")).join("");
+            let writeStatus = _krnDiskDriver.writeFile(pcb.swapFile, progHex, true);
+            switch (writeStatus) {
+                case TSOS.FileStatus.SUCCESS: {
+                    this.krnTrace(`Wrote memory ranage to swap file '${pcb.swapFile}'.`);
                     break;
+                }
+                default: {
+                    this.krnTrapError('Error while writing a swap file.');
+                    return;
                 }
             }
         }

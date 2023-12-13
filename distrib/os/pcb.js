@@ -17,6 +17,7 @@ var TSOS;
         limit;
         segment;
         location;
+        swapFile;
         constructor() {
             this.pid = PCB.pidStore;
             this.programCounter = 0;
@@ -28,6 +29,7 @@ var TSOS;
             this.segment = 0;
             this.location = Location.MEMORY;
             this.state = State.NEW;
+            this.swapFile = `${this.pid}.swap`;
         }
         updateFromCPU(pc, ir, acc, xReg, yReg, zFlag) {
             this.programCounter = pc;

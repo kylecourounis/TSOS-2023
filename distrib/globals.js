@@ -33,6 +33,7 @@ var _MemAccessor; // Utilize TypeScript's type annotation system to ensure that 
 var _MemoryManager; // Utilize TypeScript's type annotation system to ensure that _MemoryManager is an instance of the MemoryManager class.
 var _CpuDispatcher;
 var _CpuScheduler;
+var _Swap;
 var _PCBList = [];
 var _PCBQueue = null;
 var _CurrentProcess = null;

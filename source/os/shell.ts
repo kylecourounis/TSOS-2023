@@ -618,7 +618,10 @@ module TSOS {
 
                 if (pcb.state === State.RESIDENT) {
                     pcb.state = State.READY;
-                    _PCBQueue.enqueue(pcb); 
+
+                    if (!_PCBQueue.q.includes(pcb)) {
+                        _PCBQueue.enqueue(pcb); 
+                    }
                 }
             }
             
@@ -706,7 +709,7 @@ module TSOS {
                     }
                 }
             } else {
-                _StdOut.putText("Usage: format [-quick] [-full] Please specify a mode");
+                _Kernel.krnFormatDisk(false); // This is for glados testing - format doesn't have any parameters. 
             }
         }
 

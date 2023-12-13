@@ -29,6 +29,8 @@ module TSOS {
 
         public location: Location;
 
+        public swapFile: string;
+
         constructor() {
             this.pid = PCB.pidStore;
 
@@ -42,6 +44,8 @@ module TSOS {
             this.location = Location.MEMORY;
 
             this.state = State.NEW;
+
+            this.swapFile = `${this.pid}.swap`;
         }
 
         public updateFromCPU(pc: number, ir: number, acc: number, xReg: number, yReg: number, zFlag: number): void {

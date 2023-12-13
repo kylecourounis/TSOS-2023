@@ -1,65 +1,52 @@
 /* ------------
    Swap.ts
    ------------ */
-module TSOS {
-    export class Swap {
-        public swap(pcb: PCB) {
+var TSOS;
+(function (TSOS) {
+    class Swap {
+        swap(pcb) {
             if (!_MemoryManager.isSegmentAvailable()) {
                 // Roll out MRU process
                 this.rollOut(_PCBQueue.q[_PCBQueue.getSize() - 1]);
             }
-
             this.rollIn(pcb);
         }
-
-        public rollIn(pcb: PCB) {
+        rollIn(pcb) {
             let readResult = _krnDiskDriver.readSwapFile(pcb.swapFile);
-
             _krnDiskDriver.deleteFile(pcb.swapFile);
-
             switch (readResult) {
-                case FileStatus.DISK_NOT_FORMATTED: {
+                case TSOS.FileStatus.DISK_NOT_FORMATTED: {
                     _Kernel.krnTrace(`The disk must be formatted before you can write to any file.`);
                     break;
                 }
-
-                case FileStatus.FILE_NOT_FOUND: {
+                case TSOS.FileStatus.FILE_NOT_FOUND: {
                     _Kernel.krnTrace(`File not found.`);
                     break;
                 }
-
-                case FileStatus.READ_FROM_AVAILABLE_BLOCK: {
+                case TSOS.FileStatus.READ_FROM_AVAILABLE_BLOCK: {
                     _Kernel.krnTrace(`Error: trying to read data from an available block.`);
                     break;
                 }
-
                 default: {
                     let segment = _MemoryManager.allocateMemoryForProgram(pcb, readResult);
-
-                    pcb.location = Location.MEMORY;
-
-                    Control.updatePCBRow(pcb);
-
+                    pcb.location = TSOS.Location.MEMORY;
+                    TSOS.Control.updatePCBRow(pcb);
                     _Kernel.krnTrace(`Rolled in PID ${pcb.pid} to segment ${pcb.segment}.`);
-
                     break;
                 }
             }
-
-            Control.updatePCBRow(pcb);
+            TSOS.Control.updatePCBRow(pcb);
         }
-
-        public rollOut(pcb: PCB) {
-            if (pcb.state === State.READY) {
+        rollOut(pcb) {
+            if (pcb.state === TSOS.State.READY) {
                 _Kernel.krnCreateSwapFile(pcb);
             }
-
             _MemoryManager.deallocateMemory(pcb);
-
             pcb.segment = -1;
-            pcb.location = Location.DISK_DRIVE;
-
-            Control.updatePCBRow(pcb);
+            pcb.location = TSOS.Location.DISK_DRIVE;
+            TSOS.Control.updatePCBRow(pcb);
         }
     }
-}
+    TSOS.Swap = Swap;
+})(TSOS || (TSOS = {}));
+//# sourceMappingURL=swap.js.map

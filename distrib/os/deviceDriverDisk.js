@@ -105,8 +105,8 @@ var TSOS;
                 return FileStatus.DISK_NOT_FORMATTED;
             }
         }
-        readFile(filename, raw = false) {
-            let output = [];
+        readFile(filename) {
+            let output = "";
             if (this.formatted) {
                 let block = this.getFirstBlockForFile(filename);
                 if (block !== "") {
@@ -124,12 +124,7 @@ var TSOS;
                                             isAtEnd = true;
                                         }
                                         else {
-                                            if (!raw) {
-                                                output.push(String.fromCharCode(parseInt(hexVal, 16)));
-                                            }
-                                            else {
-                                                output.push(parseInt(hexVal, 16));
-                                            }
+                                            output += String.fromCharCode(parseInt(hexVal, 16));
                                         }
                                     }
                                 }
@@ -145,6 +140,49 @@ var TSOS;
                         }
                         else {
                             return FileStatus.INVALID_BLOCK;
+                        }
+                    }
+                }
+                else {
+                    return FileStatus.FILE_NOT_FOUND;
+                }
+            }
+            else {
+                return FileStatus.DISK_NOT_FORMATTED;
+            }
+            return output;
+        }
+        readSwapFile(filename, byteCount = 0x100) {
+            let output = [];
+            if (this.formatted) {
+                let block = this.getFirstBlockForFile(filename);
+                if (block !== "") {
+                    let bytesRead = 0;
+                    // Continue until the end of the file or an error
+                    while (bytesRead < byteCount) {
+                        // Make sure we have a file initialized at that block
+                        if (block !== '-:-:-') {
+                            if (sessionStorage.getItem(block).charAt(1) === "1") {
+                                let data = sessionStorage.getItem(block).substring(8); // Skip 4 byte header
+                                for (let i = 0; i < data.length; i += 2) {
+                                    if (bytesRead < byteCount) {
+                                        let hexVal = data.substring(i, i + 2);
+                                        output.push(hexVal);
+                                        bytesRead++;
+                                    }
+                                }
+                                // If we're not at the end, go to the next block
+                                if (bytesRead < byteCount) {
+                                    let nextTSB = sessionStorage.getItem(block).substring(2, 8);
+                                    block = `${nextTSB.charAt(1)}:${nextTSB.charAt(3)}:${nextTSB.charAt(5)}`;
+                                }
+                            }
+                            else {
+                                return FileStatus.READ_FROM_AVAILABLE_BLOCK;
+                            }
+                        }
+                        else {
+                            break;
                         }
                     }
                 }
@@ -294,7 +332,7 @@ var TSOS;
                                 return FileStatus.DISK_NOT_FORMATTED;
                             }
                             default: {
-                                this.writeFile(newFilename, read.join(""), false);
+                                this.writeFile(newFilename, read, false);
                                 return FileStatus.SUCCESS;
                             }
                         }
@@ -322,7 +360,6 @@ var TSOS;
                         sessionStorage.setItem(tsb, "00" + entry.substring(2));
                         while (dataTSB !== "-:-:-") {
                             let data = sessionStorage.getItem(dataTSB);
-                            console.log(`${dataTSB} - ${data}`);
                             if (data.charAt(1) !== "0") {
                                 sessionStorage.setItem(dataTSB, "00" + data.substring(2));
                                 // Get next link in the chain

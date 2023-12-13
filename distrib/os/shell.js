@@ -467,7 +467,9 @@ var TSOS;
                 let pcb = _PCBList[i];
                 if (pcb.state === TSOS.State.RESIDENT) {
                     pcb.state = TSOS.State.READY;
-                    _PCBQueue.enqueue(pcb);
+                    if (!_PCBQueue.q.includes(pcb)) {
+                        _PCBQueue.enqueue(pcb);
+                    }
                 }
             }
             if (_PCBQueue.getSize() > 0) {
@@ -544,7 +546,7 @@ var TSOS;
                 }
             }
             else {
-                _StdOut.putText("Usage: format [-quick] [-full] Please specify a mode");
+                _Kernel.krnFormatDisk(false); // This is for glados testing - format doesn't have any parameters. 
             }
         }
         shellCreate(args) {

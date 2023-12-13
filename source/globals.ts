@@ -45,6 +45,8 @@ var _MemoryManager: TSOS.MemoryManager;  // Utilize TypeScript's type annotation
 var _CpuDispatcher: TSOS.CpuDispatcher;
 var _CpuScheduler: TSOS.CpuScheduler;
 
+var _Swap: TSOS.Swap;
+
 var _PCBList: TSOS.PCB[] = [];
 var _PCBQueue: TSOS.Queue = null;
 var _CurrentProcess: TSOS.PCB = null;
