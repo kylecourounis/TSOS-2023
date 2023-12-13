@@ -194,7 +194,7 @@ module TSOS {
         public krnTerminateProcess(pcb: PCB) {
             if (_CurrentProcess !== null) {
                 console.log(_CurrentProcess.pid === pcb.pid);
-                
+
                 if (_CurrentProcess.pid === pcb.pid) {
                     _CpuScheduler.cycleCount = 0; 
 
@@ -272,6 +272,8 @@ module TSOS {
                 _StdOut.putText('Disk cannot be formatted while there are swap files present!');
             } else {
                 _krnDiskDriver.formatDisk(quick);
+
+                Control.initDiskView();
 
                 _StdOut.putText('Disk has been formatted.');
                 this.krnTrace('Disk formatted');

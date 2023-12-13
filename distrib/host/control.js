@@ -219,6 +219,59 @@ var TSOS;
             row.cells[8].innerHTML = pcb.segment.toString();
             row.cells[9].innerHTML = pcb.location.toString();
         }
+        static initDiskView() {
+            let diskTable = document.getElementById("disk-drive");
+            for (let t = 0; t < TSOS.TRACKS; t++) {
+                for (let s = 0; s < TSOS.SECTORS; s++) {
+                    for (let b = 0; b < TSOS.BLOCKS; b++) {
+                        let row = document.createElement('tr');
+                        // Apparently query selector can't be just numbers, so I prefixed it with tsb
+                        row.id = `tsb${t}${s}${b}`;
+                        let tsbElement = document.createElement('td');
+                        tsbElement.innerHTML = `${t}:${s}:${b}`;
+                        row.appendChild(tsbElement);
+                        let data = sessionStorage.getItem(`${t}:${s}:${b}`);
+                        let availableElem = document.createElement('td');
+                        availableElem.innerHTML = data.charAt(1);
+                        row.appendChild(availableElem);
+                        let nextBlockElem = document.createElement('td');
+                        nextBlockElem.innerHTML = `${data.charAt(3)}:${data.charAt(5)}:${data.charAt(7)}`;
+                        row.appendChild(nextBlockElem);
+                        let dataElem = document.createElement('td');
+                        dataElem.innerHTML = data.substring(8);
+                        row.appendChild(dataElem);
+                        diskTable.appendChild(row);
+                    }
+                }
+            }
+        }
+        static updateDiskView() {
+            for (let t = 0; t < TSOS.TRACKS; t++) {
+                for (let s = 0; s < TSOS.SECTORS; s++) {
+                    for (let b = 0; b < TSOS.BLOCKS; b++) {
+                        let row = document.querySelector(`#tsb${t}${s}${b}`);
+                        let storage = sessionStorage.getItem(`${t}:${s}:${b}`);
+                        // Start at 1 to exclude first column
+                        for (let i = 1; i < row.cells.length; i++) {
+                            switch (i) {
+                                case 1: {
+                                    row.cells[i].innerHTML = storage.charAt(1);
+                                    break;
+                                }
+                                case 2: {
+                                    row.cells[i].innerHTML = storage.charAt(3) + ':' + storage.charAt(5) + ':' + storage.charAt(7);
+                                    break;
+                                }
+                                case 3: {
+                                    row.cells[i].innerHTML = storage.substring(8);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     TSOS.Control = Control;
 })(TSOS || (TSOS = {}));

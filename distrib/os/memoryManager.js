@@ -26,8 +26,6 @@ var TSOS;
                 pcb.segment = segment;
                 pcb.base = segment * 0x100;
                 pcb.limit = (segment * 0x100) + 0x100 - 1;
-                console.log(program);
-                console.log(_MemAccessor.getRange(pcb.base, pcb.limit));
                 return segment;
             }
             else {

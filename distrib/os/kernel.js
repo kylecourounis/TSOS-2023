@@ -152,6 +152,7 @@ var TSOS;
         }
         krnTerminateProcess(pcb) {
             if (_CurrentProcess !== null) {
+                console.log(_CurrentProcess.pid === pcb.pid);
                 if (_CurrentProcess.pid === pcb.pid) {
                     _CpuScheduler.cycleCount = 0;
                     _CurrentProcess = null;
@@ -160,13 +161,12 @@ var TSOS;
                 }
                 else {
                     // Find the process that needs to be terminated
-                    /* for (let i = 0; i < _PCBQueue.getSize(); i++) {
-                        let process: PCB = _PCBQueue.dequeue();
-
+                    for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                        let process = _PCBQueue.dequeue();
                         if (process.pid !== pcb.pid) {
                             _PCBQueue.enqueue(process);
                         }
-                    } */
+                    }
                 }
             }
             if (pcb) {
@@ -216,6 +216,7 @@ var TSOS;
             }
             else {
                 _krnDiskDriver.formatDisk(quick);
+                TSOS.Control.initDiskView();
                 _StdOut.putText('Disk has been formatted.');
                 this.krnTrace('Disk formatted');
             }

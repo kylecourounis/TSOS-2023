@@ -5,12 +5,12 @@
    ---------------------------------- */
 
 module TSOS {
-    const TRACKS: number = 4;
-    const SECTORS: number = 8;
-    const BLOCKS: number = 8;
+    export const TRACKS: number = 4;
+    export const SECTORS: number = 8;
+    export const BLOCKS: number = 8;
 
-    const HEADER_SIZE: number = 4;
-    const BLOCK_SIZE: number = 64;
+    export const HEADER_SIZE: number = 4;
+    export const BLOCK_SIZE: number = 64;
 
     const FILE_NAME_LENGTH: number = 54; // because we're storing the date as well as the number of blocks taken
 
@@ -52,7 +52,7 @@ module TSOS {
                 }
             }
 
-            // TODO - create visual
+            Control.initDiskView();
 
             this.formatted = true;
         }
@@ -117,6 +117,8 @@ module TSOS {
                         sessionStorage.setItem(firstAvailDir, newEntry);
                         sessionStorage.setItem(firstAvailFile, "01------".padEnd(BLOCK_SIZE * 2, "0"));
 
+                        Control.updateDiskView();
+
                         return FileStatus.SUCCESS;
                     } else {
                         return FileStatus.FILE_EXISTS;
@@ -167,6 +169,8 @@ module TSOS {
                             return FileStatus.INVALID_BLOCK;
                         }
                     }
+                            
+                    Control.updateDiskView();
                 } else {
                     return FileStatus.FILE_NOT_FOUND;
                 }
@@ -215,6 +219,8 @@ module TSOS {
                             break;
                         }
                     }
+                            
+                    Control.updateDiskView();
                 } else {
                     return FileStatus.FILE_NOT_FOUND;
                 }
@@ -247,7 +253,7 @@ module TSOS {
 
                     sessionStorage.setItem(directoryEntry, sessionStorage.getItem(directoryEntry).substring(0, 8) + nameAsHex + metadata);
 
-                    // TODO: Update visual
+                    Control.updateDiskView();
 
                     return FileStatus.SUCCESS;
                 }
@@ -356,6 +362,8 @@ module TSOS {
                     let fileDirTsb: string = this.getDirectoryEntry(filename);
                     sessionStorage.setItem(fileDirTsb, sessionStorage.getItem(fileDirTsb).substring(0, (BLOCK_SIZE - 1) * 2) + blocksUsed.toString(16).toUpperCase().padStart(2, "0"));
 
+                    Control.updateDiskView();
+
                     return FileStatus.SUCCESS;
                 } else {
                     return FileStatus.FILE_NOT_FOUND;
@@ -435,6 +443,8 @@ module TSOS {
                             }
                         }
 
+                        Control.updateDiskView();
+                        
                         return FileStatus.SUCCESS;
                     }
                 } else {

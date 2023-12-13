@@ -5,11 +5,11 @@
    ---------------------------------- */
 var TSOS;
 (function (TSOS) {
-    const TRACKS = 4;
-    const SECTORS = 8;
-    const BLOCKS = 8;
-    const HEADER_SIZE = 4;
-    const BLOCK_SIZE = 64;
+    TSOS.TRACKS = 4;
+    TSOS.SECTORS = 8;
+    TSOS.BLOCKS = 8;
+    TSOS.HEADER_SIZE = 4;
+    TSOS.BLOCK_SIZE = 64;
     const FILE_NAME_LENGTH = 54; // because we're storing the date as well as the number of blocks taken
     // Extends DeviceDriver
     class DeviceDriverDisk extends TSOS.DeviceDriver {
@@ -29,9 +29,9 @@ var TSOS;
             // More?
         }
         formatDisk(quick = false) {
-            for (let t = 0; t < TRACKS; t++) {
-                for (let s = 0; s < SECTORS; s++) {
-                    for (let b = 0; b < BLOCKS; b++) {
+            for (let t = 0; t < TSOS.TRACKS; t++) {
+                for (let s = 0; s < TSOS.SECTORS; s++) {
+                    for (let b = 0; b < TSOS.BLOCKS; b++) {
                         // Only allow a quick format if the disk has already been formatted with 00s
                         if (this.formatted && quick) {
                             // Data can stay, just mark the data as writable
@@ -40,12 +40,12 @@ var TSOS;
                         else {
                             // Set each block to be 0s
                             // Use -- so that we don't point to the MBR
-                            sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + "0".repeat((BLOCK_SIZE - (HEADER_SIZE * 2)) * 2));
+                            sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + "0".repeat((TSOS.BLOCK_SIZE - (TSOS.HEADER_SIZE * 2)) * 2));
                         }
                     }
                 }
             }
-            // TODO - create visual
+            TSOS.Control.initDiskView();
             this.formatted = true;
         }
         createFile(filename) {
@@ -93,7 +93,8 @@ var TSOS;
                         newEntry += "02";
                         // Save it on the disk in both the directory portion and the file portion
                         sessionStorage.setItem(firstAvailDir, newEntry);
-                        sessionStorage.setItem(firstAvailFile, "01------".padEnd(BLOCK_SIZE * 2, "0"));
+                        sessionStorage.setItem(firstAvailFile, "01------".padEnd(TSOS.BLOCK_SIZE * 2, "0"));
+                        TSOS.Control.updateDiskView();
                         return FileStatus.SUCCESS;
                     }
                     else {
@@ -142,6 +143,7 @@ var TSOS;
                             return FileStatus.INVALID_BLOCK;
                         }
                     }
+                    TSOS.Control.updateDiskView();
                 }
                 else {
                     return FileStatus.FILE_NOT_FOUND;
@@ -185,6 +187,7 @@ var TSOS;
                             break;
                         }
                     }
+                    TSOS.Control.updateDiskView();
                 }
                 else {
                     return FileStatus.FILE_NOT_FOUND;
@@ -213,7 +216,7 @@ var TSOS;
                     nameAsHex = nameAsHex.padEnd(FILE_NAME_LENGTH * 2, "0");
                     let metadata = sessionStorage.getItem(directoryEntry).substring(8 + FILE_NAME_LENGTH * 2);
                     sessionStorage.setItem(directoryEntry, sessionStorage.getItem(directoryEntry).substring(0, 8) + nameAsHex + metadata);
-                    // TODO: Update visual
+                    TSOS.Control.updateDiskView();
                     return FileStatus.SUCCESS;
                 }
             }
@@ -252,8 +255,8 @@ var TSOS;
                             return FileStatus.INVALID_BLOCK; // Reusing the invalid block error to show that it's unavailable
                         }
                         else {
-                            let toWrite = remainingContent.substring(0, (BLOCK_SIZE - HEADER_SIZE) * 2).padEnd((BLOCK_SIZE - HEADER_SIZE) * 2, "0");
-                            remainingContent = remainingContent.substring((BLOCK_SIZE - HEADER_SIZE) * 2);
+                            let toWrite = remainingContent.substring(0, (TSOS.BLOCK_SIZE - TSOS.HEADER_SIZE) * 2).padEnd((TSOS.BLOCK_SIZE - TSOS.HEADER_SIZE) * 2, "0");
+                            remainingContent = remainingContent.substring((TSOS.BLOCK_SIZE - TSOS.HEADER_SIZE) * 2);
                             // Write the contents to file with current header
                             sessionStorage.setItem(block, sessionStorage.getItem(block).substring(0, 8) + toWrite);
                             if (sessionStorage.getItem(block).substring(2, 8) === "------") {
@@ -271,13 +274,13 @@ var TSOS;
                                 }
                                 // If non-existent, then append EOF
                                 if (newTSB === "") {
-                                    sessionStorage.setItem(block, sessionStorage.getItem(block).substring(0, BLOCK_SIZE * 2 - 2) + "00");
+                                    sessionStorage.setItem(block, sessionStorage.getItem(block).substring(0, TSOS.BLOCK_SIZE * 2 - 2) + "00");
                                     return FileStatus.PARTIALLY_WRITTEN;
                                 }
                                 else {
                                     let updatedFileBlock = sessionStorage.getItem(block).substring(0, 2) + "0" + newTSB.charAt(0) + "0" + newTSB.charAt(2) + "0" + newTSB.charAt(4) + sessionStorage.getItem(block).substring(8);
                                     sessionStorage.setItem(block, updatedFileBlock);
-                                    sessionStorage.setItem(newTSB, "01" + sessionStorage.getItem(newTSB).substring(2, 8) + "0".repeat((BLOCK_SIZE - HEADER_SIZE) * 2));
+                                    sessionStorage.setItem(newTSB, "01" + sessionStorage.getItem(newTSB).substring(2, 8) + "0".repeat((TSOS.BLOCK_SIZE - TSOS.HEADER_SIZE) * 2));
                                     block = newTSB;
                                 }
                                 blocksUsed++;
@@ -301,7 +304,8 @@ var TSOS;
                     }
                     // Update the number of blocks in the directory entry, so we know how many blocks it takes to store
                     let fileDirTsb = this.getDirectoryEntry(filename);
-                    sessionStorage.setItem(fileDirTsb, sessionStorage.getItem(fileDirTsb).substring(0, (BLOCK_SIZE - 1) * 2) + blocksUsed.toString(16).toUpperCase().padStart(2, "0"));
+                    sessionStorage.setItem(fileDirTsb, sessionStorage.getItem(fileDirTsb).substring(0, (TSOS.BLOCK_SIZE - 1) * 2) + blocksUsed.toString(16).toUpperCase().padStart(2, "0"));
+                    TSOS.Control.updateDiskView();
                     return FileStatus.SUCCESS;
                 }
                 else {
@@ -369,6 +373,7 @@ var TSOS;
                                 return FileStatus.OTHER_ERROR;
                             }
                         }
+                        TSOS.Control.updateDiskView();
                         return FileStatus.SUCCESS;
                     }
                 }
@@ -383,8 +388,8 @@ var TSOS;
         listFiles() {
             let fileList = [];
             if (this.formatted) {
-                for (let s = 0; s < SECTORS; s++) {
-                    for (let b = 0; b < BLOCKS; b++) {
+                for (let s = 0; s < TSOS.SECTORS; s++) {
+                    for (let b = 0; b < TSOS.BLOCKS; b++) {
                         // skip MBR
                         if (s === 0 && b === 0) {
                             continue;
@@ -409,7 +414,7 @@ var TSOS;
                                     }
                                 }
                             }
-                            let metadata = entry.substring((BLOCK_SIZE - 5) * 2);
+                            let metadata = entry.substring((TSOS.BLOCK_SIZE - 5) * 2);
                             // Convert back from base 16
                             let month = parseInt(metadata.substring(0, 2), 16);
                             let day = parseInt(metadata.substring(2, 4), 16);
@@ -446,8 +451,8 @@ var TSOS;
         }
         getDirectoryEntry(fileToFind) {
             let location = "";
-            for (let s = 0; s < SECTORS; s++) {
-                for (let b = 0; b < BLOCKS; b++) {
+            for (let s = 0; s < TSOS.SECTORS; s++) {
+                for (let b = 0; b < TSOS.BLOCKS; b++) {
                     // skip MBR
                     if (s === 0 && b === 0) {
                         continue;
@@ -484,8 +489,8 @@ var TSOS;
         }
         firstAvailableDirectoryBlock() {
             let dir = "";
-            for (let s = 0; s < SECTORS; s++) {
-                for (let b = 0; b < BLOCKS; b++) {
+            for (let s = 0; s < TSOS.SECTORS; s++) {
+                for (let b = 0; b < TSOS.BLOCKS; b++) {
                     // skip the MBR
                     if (s === 0 && b === 0) {
                         continue;
@@ -502,9 +507,9 @@ var TSOS;
         firstAvailableFileBlock() {
             let data = "";
             // Iterate on everything except track 0, because that's the directory portion
-            for (let t = 1; t < TRACKS; t++) {
-                for (let s = 0; s < SECTORS; s++) {
-                    for (let b = 0; b < BLOCKS; b++) {
+            for (let t = 1; t < TSOS.TRACKS; t++) {
+                for (let s = 0; s < TSOS.SECTORS; s++) {
+                    for (let b = 0; b < TSOS.BLOCKS; b++) {
                         // Finally, check if it's 0, which means it's writable
                         if (sessionStorage.getItem(`${t}:${s}:${b}`).charAt(1) === "0") {
                             data = `${t}:${s}:${b}`;

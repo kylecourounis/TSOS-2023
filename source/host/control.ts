@@ -273,5 +273,72 @@ module TSOS {
             row.cells[8].innerHTML = pcb.segment.toString();
             row.cells[9].innerHTML = pcb.location.toString();
         }
+
+        public static initDiskView(): void {
+            let diskTable = (<HTMLTableElement> document.getElementById("disk-drive"));
+
+            for (let t = 0; t < TRACKS; t++) {
+                for (let s = 0; s < SECTORS; s++) {
+                    for (let b = 0; b < BLOCKS; b++) {
+                        let row: HTMLTableRowElement = document.createElement('tr');
+                        // Apparently query selector can't be just numbers, so I prefixed it with tsb
+                        row.id = `tsb${t}${s}${b}`;
+
+                        let tsbElement: HTMLTableCellElement = document.createElement('td');
+                        tsbElement.innerHTML = `${t}:${s}:${b}`;
+
+                        row.appendChild(tsbElement);
+
+                        let data = sessionStorage.getItem(`${t}:${s}:${b}`);
+
+                        let availableElem: HTMLTableCellElement = document.createElement('td');
+                        availableElem.innerHTML = data.charAt(1);
+
+                        row.appendChild(availableElem);
+
+                        let nextBlockElem: HTMLTableCellElement = document.createElement('td');
+                        nextBlockElem.innerHTML = `${data.charAt(3)}:${data.charAt(5)}:${data.charAt(7)}`;
+
+                        row.appendChild(nextBlockElem);
+
+                        let dataElem: HTMLTableCellElement = document.createElement('td');
+                        dataElem.innerHTML = data.substring(8);
+
+                        row.appendChild(dataElem);
+
+                        diskTable.appendChild(row);
+                    }
+                }
+            }
+        }
+
+        public static updateDiskView(): void {
+            for (let t = 0; t < TRACKS; t++) {
+                for (let s = 0; s < SECTORS; s++) {
+                    for (let b = 0; b < BLOCKS; b++) {
+                        let row: HTMLTableRowElement = document.querySelector(`#tsb${t}${s}${b}`);
+                        let storage: string = sessionStorage.getItem(`${t}:${s}:${b}`);
+                        
+                        // Start at 1 to exclude first column
+                        for (let i: number = 1; i < row.cells.length; i++) {
+                            switch (i) {
+                                case 1: {
+                                    row.cells[i].innerHTML = storage.charAt(1);
+                                    break;
+                                }
+                                case 2: {
+                                    row.cells[i].innerHTML = storage.charAt(3) + ':' + storage.charAt(5) + ':' + storage.charAt(7);
+                                    break;
+                                }
+                                case 3: {
+                                    row.cells[i].innerHTML = storage.substring(8);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
