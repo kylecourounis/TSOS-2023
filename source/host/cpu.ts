@@ -128,6 +128,11 @@ module TSOS {
         
                 case OpCode.BRK: {
                     _KernelInterruptQueue.enqueue(new Interrupt(TERMINATE_IRQ, [_CurrentProcess]));
+
+                    if (_CpuScheduler.type === SchedulingAlgorithm.FCFS) {
+                        _CpuScheduler.schedule();
+                    }
+
                     break;
                 }
         

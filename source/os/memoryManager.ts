@@ -12,7 +12,7 @@ module TSOS {
                 return;
             }
             
-            let progs = _PCBList.filter(pcb => pcb.segment !== -1); // -1 indicates it's on disk
+            let progs = _PCBQueue.q.filter(pcb => pcb.segment !== -1);
 
             if (progs.length < 3) {
                 let segment = -1;
@@ -27,15 +27,15 @@ module TSOS {
                     }
                 }
 
-                for (let i = 0; i < program.length; i++) {
-                    _MemAccessor.writeImmediate(segment * 0x100 + i, parseInt(program[i], 16));
-                }
-
                 pcb.segment = segment;
 
                 pcb.base = segment * 0x100;
                 pcb.limit = (segment * 0x100) + 0x100 - 1;
                 
+                for (let i = 0; i < program.length; i++) {
+                    _MemAccessor.writeImmediate(pcb.segment * 0x100 + i, parseInt(program[i], 16));
+                }
+
                 return segment;
             } else {
                 return -1;

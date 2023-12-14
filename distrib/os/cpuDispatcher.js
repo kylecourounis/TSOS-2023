@@ -15,13 +15,18 @@ var TSOS;
                     _PCBQueue.enqueue(_CurrentProcess);
                 }
                 _CurrentProcess = _PCBQueue.dequeue();
-                if (_CurrentProcess.location === TSOS.Location.DISK_DRIVE) {
-                    _Swap.swap(_CurrentProcess);
+                let newProcess = _CurrentProcess;
+                if (newProcess.location === TSOS.Location.DISK_DRIVE) {
+                    _Swap.swap(newProcess);
                 }
-                _CurrentProcess.state = TSOS.State.RUNNING;
-                TSOS.Control.updatePCBRow(_CurrentProcess);
+                newProcess.state = TSOS.State.RUNNING;
+                console.log(`${newProcess.pid} (${newProcess.segment}): ${newProcess.base}-${newProcess.limit}`);
+                console.log(_MemAccessor.getRange(newProcess.base, newProcess.limit));
+                console.log("\n");
+                TSOS.Control.updatePCBRow(newProcess);
                 TSOS.Control.updateCPUView();
-                _CPU.setState(_CurrentProcess.programCounter, _CurrentProcess.instructionRegister, _CurrentProcess.acc, _CurrentProcess.xReg, _CurrentProcess.yReg, _CurrentProcess.zFlag);
+                _CPU.setState(newProcess.programCounter, newProcess.instructionRegister, newProcess.acc, newProcess.xReg, newProcess.yReg, newProcess.zFlag);
+                _CurrentProcess = newProcess;
             }
             else {
                 _CPU.isExecuting = false;

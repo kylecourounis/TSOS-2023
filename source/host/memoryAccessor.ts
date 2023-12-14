@@ -90,8 +90,17 @@ module TSOS {
          * @param address The address at which to read the MDR from.
          */
         public readImmediate(address: number) {
-            this.memory.setMAR(address);
-            this.memory.read();
+            if (_CurrentProcess != null) {
+                if (address > _CurrentProcess.limit) {
+                    _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
+                } else {
+                    this.setMAR(address);
+                    this.memory.read();
+                }
+            } else {
+                this.memory.setMAR(address);    
+                this.memory.read();
+            }
         }
 
         /**
@@ -100,11 +109,43 @@ module TSOS {
          * @param value The value to place in the MDR.
          */
         public writeImmediate(address: number, value: number) {
-            this.memory.setMAR(address);
-            this.memory.setMDR(value);
-            
-            this.memory.write();
+            if (_CurrentProcess != null) {
+                if (address > _CurrentProcess.limit) {
+                    _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
+                } else {
+                    this.setMAR(address);
+                    this.memory.setMDR(value);
+                    
+                    this.memory.write();
+                }
+            } else {
+                this.memory.setMAR(address);
+                this.memory.setMDR(value);
+                
+                this.memory.write();
+            }
         }
+
+        /**
+         * Sets the MAR and reads the value from memory at that location.
+         * @param address The address at which to read the MDR from.
+         */
+        // public readImmediate(address: number) {
+        //     this.memory.setMAR(address);
+        //     this.memory.read();
+        // }
+
+        // /**
+        //  * Sets the MAR and MDR to the specified values and forcibly writes to memory.
+        //  * @param address The address where we are setting the value.
+        //  * @param value The value to place in the MDR.
+        //  */
+        // public writeImmediate(address: number, value: number) {
+        //     this.memory.setMAR(address);
+        //     this.memory.setMDR(value);
+            
+        //     this.memory.write();
+        // }
 
         /**
          * Sets the LOB of the MAR.

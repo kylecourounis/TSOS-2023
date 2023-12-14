@@ -207,6 +207,18 @@ module TSOS {
                                   "[-a] - Lists all files (can utilize optional arguments)");
             this.commandList[this.commandList.length] = sc;
 
+            // getschedule
+            sc = new ShellCommand(this.shellGetSchedule,
+                                  "getschedule",
+                                  " - Outputs the scheduling algorithm that is currently selected.");
+            this.commandList[this.commandList.length] = sc;
+
+            // setschedule
+            sc = new ShellCommand(this.shellSetSchedule,
+                                  "setschedule",
+                                  "<rr/fcfs> - Sets the scheduling algorithm.");
+            this.commandList[this.commandList.length] = sc;
+
             // Display the initial prompt.
             this.putPrompt();
         }
@@ -479,6 +491,14 @@ module TSOS {
 
                     case "ls":
                         _StdOut.putText("Lists all files on disk. Use -a to see hidden files.");
+                        break;
+
+                    case "getschedule":
+                        _StdOut.putText("Gets the scheduling algorithm currently in use.");
+                        break;
+
+                    case "setschedule":
+                        _StdOut.putText("Sets the scheduling algorithm to be used.");
                         break;
 
                     default:
@@ -791,6 +811,36 @@ module TSOS {
                 }
             } else {
                 _Kernel.krnListFiles(false);
+            }
+        }
+
+        public shellGetSchedule(args: string[]) {
+            _StdOut.putText(`Currently using ${_CpuScheduler.type} scheduling.`);
+        }
+
+        public shellSetSchedule(args: string[]) {
+            if (args.length > 0) {
+                let oldAlgo = _CpuScheduler.type;
+
+                switch (args[0]) {
+                    case "rr": {
+                        _CpuScheduler.setSchedule(SchedulingAlgorithm.RR);
+                        break;
+                    }
+                    case "fcfs": {
+                        _CpuScheduler.setSchedule(SchedulingAlgorithm.FCFS);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText("Unknown algorithm. Try again.");
+                        return;
+                    }
+                }
+
+                _StdOut.putText(`Switched scheduling from ${oldAlgo} to ${_CpuScheduler.type}.`);
+
+            } else {
+                _StdOut.putText("Usage: setschedule <rr/fcfs> Please supply a type of scheduling");
             }
         }
     }

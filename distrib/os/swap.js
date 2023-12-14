@@ -13,7 +13,6 @@ var TSOS;
         }
         rollIn(pcb) {
             let readResult = _krnDiskDriver.readSwapFile(pcb.swapFile);
-            _krnDiskDriver.deleteFile(pcb.swapFile);
             switch (readResult) {
                 case TSOS.FileStatus.DISK_NOT_FORMATTED: {
                     _Kernel.krnTrace(`The disk must be formatted before you can write to any file.`);
@@ -28,13 +27,15 @@ var TSOS;
                     break;
                 }
                 default: {
-                    let segment = _MemoryManager.allocateMemoryForProgram(pcb, readResult);
+                    let newSegment = _MemoryManager.allocateMemoryForProgram(pcb, readResult);
+                    pcb.segment = newSegment;
                     pcb.location = TSOS.Location.MEMORY;
                     TSOS.Control.updatePCBRow(pcb);
                     _Kernel.krnTrace(`Rolled in PID ${pcb.pid} to segment ${pcb.segment}.`);
                     break;
                 }
             }
+            _krnDiskDriver.deleteFile(pcb.swapFile);
             TSOS.Control.updatePCBRow(pcb);
         }
         rollOut(pcb) {

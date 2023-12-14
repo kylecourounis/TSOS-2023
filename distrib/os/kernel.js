@@ -88,7 +88,7 @@ var TSOS;
             }
             else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed. 
                 // This flag is to determine whether run or runall was used.
-                if (!this.singleRun) {
+                if (!this.singleRun && _CpuScheduler.type === TSOS.SchedulingAlgorithm.RR) {
                     _CpuScheduler.schedule();
                 }
                 if (_CurrentProcess) {
@@ -120,13 +120,18 @@ var TSOS;
                 TSOS.Control.updateMemoryView();
             }
             else {
-                TSOS.PCB.pidStore++; // Increment PID counter only if we successfully create it
-                _PCBList.push(pcb); // This is what we're actually using for the moment
-                pcb.segment = -1;
-                pcb.location = TSOS.Location.DISK_DRIVE;
-                this.krnCreateSwapFile(pcb, program);
-                _StdOut.putText(`\nCreated process with PID ${pcb.pid} (on disk)`);
-                TSOS.Control.createProcessRow(pcb);
+                if (_krnDiskDriver.formatted) {
+                    TSOS.PCB.pidStore++; // Increment PID counter only if we successfully create it
+                    _PCBList.push(pcb); // This is what we're actually using for the moment
+                    pcb.segment = -1;
+                    pcb.location = TSOS.Location.DISK_DRIVE;
+                    this.krnCreateSwapFile(pcb, program);
+                    _StdOut.putText(`\nCreated process with PID ${pcb.pid} (on disk)`);
+                    TSOS.Control.createProcessRow(pcb);
+                }
+                else {
+                    _StdOut.putText(`\nYou must format the disk before initializing any new programs.`);
+                }
             }
         }
         krnRunProcess(pid) {
@@ -152,12 +157,12 @@ var TSOS;
         }
         krnTerminateProcess(pcb) {
             if (_CurrentProcess !== null) {
-                console.log(_CurrentProcess.pid === pcb.pid);
                 if (_CurrentProcess.pid === pcb.pid) {
                     _CpuScheduler.cycleCount = 0;
                     _CurrentProcess = null;
                     _CPU.init();
                     _PCBQueue.remove(pcb);
+                    _MemoryManager.deallocateMemory(pcb);
                 }
                 else {
                     // Find the process that needs to be terminated
@@ -173,6 +178,7 @@ var TSOS;
                 pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
                 TSOS.Control.updatePCBRow(pcb);
                 _MemoryManager.deallocateMemory(pcb);
+                _krnDiskDriver.deleteFile(pcb.swapFile); // In case it didn't get deleted.
             }
             if (this.singleRun) {
                 _CPU.isExecuting = false;
@@ -240,7 +246,7 @@ var TSOS;
                         }
                     }
                     else {
-                        _StdOut.putText(printString);
+                        _StdOut.putText(showAll ? printString : file.name);
                         _StdOut.advanceLine();
                     }
                 }

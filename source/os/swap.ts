@@ -14,9 +14,7 @@ module TSOS {
 
         public rollIn(pcb: PCB) {
             let readResult = _krnDiskDriver.readSwapFile(pcb.swapFile);
-
-            _krnDiskDriver.deleteFile(pcb.swapFile);
-
+            
             switch (readResult) {
                 case FileStatus.DISK_NOT_FORMATTED: {
                     _Kernel.krnTrace(`The disk must be formatted before you can write to any file.`);
@@ -34,8 +32,9 @@ module TSOS {
                 }
 
                 default: {
-                    let segment = _MemoryManager.allocateMemoryForProgram(pcb, readResult);
+                    let newSegment = _MemoryManager.allocateMemoryForProgram(pcb, readResult);
 
+                    pcb.segment = newSegment;
                     pcb.location = Location.MEMORY;
 
                     Control.updatePCBRow(pcb);
@@ -45,6 +44,8 @@ module TSOS {
                     break;
                 }
             }
+
+            _krnDiskDriver.deleteFile(pcb.swapFile);
 
             Control.updatePCBRow(pcb);
         }

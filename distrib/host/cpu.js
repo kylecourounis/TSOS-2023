@@ -114,6 +114,9 @@ var TSOS;
                 }
                 case TSOS.OpCode.BRK: {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERMINATE_IRQ, [_CurrentProcess]));
+                    if (_CpuScheduler.type === TSOS.SchedulingAlgorithm.FCFS) {
+                        _CpuScheduler.schedule();
+                    }
                     break;
                 }
                 case TSOS.OpCode.CPX: {
@@ -163,6 +166,7 @@ var TSOS;
             if (_CurrentProcess) {
                 if (_CurrentProcess.state === TSOS.State.RUNNING) {
                     _Kernel.krnTrace('CPU cycle');
+                    console.log(`${_CurrentProcess.pid} - ${this.IR} ?= ${_CurrentProcess.instructionRegister}`);
                     // TODO: Accumulate CPU usage and profiling statistics here.
                     this.fetch();
                     let decodeCycles = TSOS.DecodeCycles.get(this.IR);

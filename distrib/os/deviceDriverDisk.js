@@ -112,7 +112,7 @@ var TSOS;
                 let block = this.getFirstBlockForFile(filename);
                 if (block !== "") {
                     let isAtEnd = false;
-                    // Continue until the end of the file or an error
+                    // Loop until the end of the file
                     while (!isAtEnd) {
                         // Make sure we have a file initialized at that block
                         if (block !== '-:-:-') {
@@ -160,7 +160,7 @@ var TSOS;
                 let block = this.getFirstBlockForFile(filename);
                 if (block !== "") {
                     let bytesRead = 0;
-                    // Continue until the end of the file or an error
+                    // Loop until the end of the file
                     while (bytesRead < byteCount) {
                         // Make sure we have a file initialized at that block
                         if (block !== '-:-:-') {
