@@ -88,6 +88,36 @@ var TSOS;
             // quantum
             sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<value> - Sets the Round Robin quantum.");
             this.commandList[this.commandList.length] = sc;
+            // format
+            sc = new TSOS.ShellCommand(this.shellFormat, "format", "[-quick/-full] - Initialize all blocks in all sectors in all tracks");
+            this.commandList[this.commandList.length] = sc;
+            // create
+            sc = new TSOS.ShellCommand(this.shellCreate, "create", "<filename> - Creates a file with the specified name");
+            this.commandList[this.commandList.length] = sc;
+            // read
+            sc = new TSOS.ShellCommand(this.shellRead, "read", "<filename> - Reads a file with the specified name");
+            this.commandList[this.commandList.length] = sc;
+            // write
+            sc = new TSOS.ShellCommand(this.shellWrite, "write", "<filename> \"data\" - Writes the data to a file with the specified name");
+            this.commandList[this.commandList.length] = sc;
+            // delete
+            sc = new TSOS.ShellCommand(this.shellDelete, "delete", "<filename> - Deletes a file with the specified name");
+            this.commandList[this.commandList.length] = sc;
+            // copy
+            sc = new TSOS.ShellCommand(this.shellCopy, "copy", "<existing filename> <new filename> - Copies a file");
+            this.commandList[this.commandList.length] = sc;
+            // rename
+            sc = new TSOS.ShellCommand(this.shellRename, "rename", "<existing filename> <new filename> - Renames a file");
+            this.commandList[this.commandList.length] = sc;
+            // ls
+            sc = new TSOS.ShellCommand(this.shellLs, "ls", "[-a] - Lists all files (can utilize optional arguments)");
+            this.commandList[this.commandList.length] = sc;
+            // getschedule
+            sc = new TSOS.ShellCommand(this.shellGetSchedule, "getschedule", " - Outputs the scheduling algorithm that is currently selected.");
+            this.commandList[this.commandList.length] = sc;
+            // setschedule
+            sc = new TSOS.ShellCommand(this.shellSetSchedule, "setschedule", "<rr/fcfs> - Sets the scheduling algorithm.");
+            this.commandList[this.commandList.length] = sc;
             // Display the initial prompt.
             this.putPrompt();
         }
@@ -296,6 +326,36 @@ var TSOS;
                     case "quantum":
                         _StdOut.putText("Sets the Round Robin quantum.");
                         break;
+                    case "format":
+                        _StdOut.putText("Formats the disk by initializing all blocks in all sectors in all tracks.");
+                        break;
+                    case "create":
+                        _StdOut.putText("Creates a file.");
+                        break;
+                    case "read":
+                        _StdOut.putText("Read and display contents of filename.");
+                        break;
+                    case "write":
+                        _StdOut.putText("Writes a file with the specified filename.");
+                        break;
+                    case "delete":
+                        _StdOut.putText("Removes a file from storage.");
+                        break;
+                    case "copy":
+                        _StdOut.putText("Makes a copy of a file.");
+                        break;
+                    case "rename":
+                        _StdOut.putText("Renames a file.");
+                        break;
+                    case "ls":
+                        _StdOut.putText("Lists all files on disk. Use -a to see hidden files.");
+                        break;
+                    case "getschedule":
+                        _StdOut.putText("Gets the scheduling algorithm currently in use.");
+                        break;
+                    case "setschedule":
+                        _StdOut.putText("Sets the scheduling algorithm to be used.");
+                        break;
                     default:
                         _StdOut.putText("No manual entry for " + args[0] + ".");
                 }
@@ -419,7 +479,9 @@ var TSOS;
                 let pcb = _PCBList[i];
                 if (pcb.state === TSOS.State.RESIDENT) {
                     pcb.state = TSOS.State.READY;
-                    _PCBQueue.enqueue(pcb);
+                    if (!_PCBQueue.q.includes(pcb)) {
+                        _PCBQueue.enqueue(pcb);
+                    }
                 }
             }
             if (_PCBQueue.getSize() > 0) {
@@ -479,6 +541,128 @@ var TSOS;
             }
             else {
                 _StdOut.putText("Please specify a new quantum.");
+            }
+        }
+        // Disk commands
+        shellFormat(args) {
+            if (args.length > 0) {
+                switch (args[0]) {
+                    case "-quick": {
+                        _Kernel.krnFormatDisk(true);
+                        break;
+                    }
+                    case "-full": {
+                        _Kernel.krnFormatDisk(false);
+                        break;
+                    }
+                }
+            }
+            else {
+                _Kernel.krnFormatDisk(false); // This is for glados testing - format doesn't have any parameters. 
+            }
+        }
+        shellCreate(args) {
+            if (args.length > 0) {
+                _Kernel.krnCreateFile(args[0]);
+            }
+            else {
+                _StdOut.putText("Usage: create <filename>  Please supply a file name.");
+            }
+        }
+        shellRead(args) {
+            if (args.length > 0) {
+                let filename = args[0];
+                _Kernel.krnReadFile(filename);
+            }
+            else {
+                _StdOut.putText("Usage: read <filename>  Please supply a file name.");
+            }
+        }
+        shellWrite(args) {
+            if (args.length > 0) {
+                let filename = args[0];
+                let contents = args.slice(1).join(" "); // Splice accounts for spaces inside the quotes.
+                if (!contents.startsWith("\"") && !contents.endsWith("\"")) {
+                    _StdOut.putText("Please put the contents in quotes.");
+                }
+                else {
+                    contents = contents.slice(1, -1); // slice gets rid of the quotes.
+                    _Kernel.krnWriteFile(filename, contents);
+                }
+            }
+            else {
+                _StdOut.putText("Usage: write <filename> \"data\" Please supply a file name and/or data.");
+            }
+        }
+        shellDelete(args) {
+            if (args.length > 0) {
+                let filename = args[0];
+                _Kernel.krnDeleteFile(filename);
+            }
+            else {
+                _StdOut.putText("Usage: delete <filename>  Please supply a file name.");
+            }
+        }
+        shellCopy(args) {
+            if (args.length > 0) {
+                let filename = args[0];
+                if (args.length > 1) {
+                    let newFilename = args[1];
+                    _Kernel.krnCopyFile(filename, newFilename);
+                }
+                else {
+                    _StdOut.putText("Please supply a filename to copy to.");
+                }
+            }
+            else {
+                _StdOut.putText("Usage: copy <existing filename> <new filename> Please supply a file name.");
+            }
+        }
+        shellRename(args) {
+            if (args.length > 0) {
+                let currentFilename = args[0];
+                let newFilename = args[1];
+                _Kernel.krnRenameFile(currentFilename, newFilename);
+            }
+            else {
+                _StdOut.putText("Usage: rename <existing filename> <new filename> Please supply a file name.");
+            }
+        }
+        shellLs(args) {
+            if (args.length > 0) {
+                if (args[0] == '-a') {
+                    // List all files, including hidden ones
+                    _Kernel.krnListFiles(true);
+                }
+            }
+            else {
+                _Kernel.krnListFiles(false);
+            }
+        }
+        shellGetSchedule(args) {
+            _StdOut.putText(`Currently using ${_CpuScheduler.type} scheduling.`);
+        }
+        shellSetSchedule(args) {
+            if (args.length > 0) {
+                let oldAlgo = _CpuScheduler.type;
+                switch (args[0]) {
+                    case "rr": {
+                        _CpuScheduler.setSchedule(TSOS.SchedulingAlgorithm.RR);
+                        break;
+                    }
+                    case "fcfs": {
+                        _CpuScheduler.setSchedule(TSOS.SchedulingAlgorithm.FCFS);
+                        break;
+                    }
+                    default: {
+                        _StdOut.putText("Unknown algorithm. Try again.");
+                        return;
+                    }
+                }
+                _StdOut.putText(`Switched scheduling from ${oldAlgo} to ${_CpuScheduler.type}.`);
+            }
+            else {
+                _StdOut.putText("Usage: setschedule <rr/fcfs> Please supply a type of scheduling");
             }
         }
     }

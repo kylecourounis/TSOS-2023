@@ -11,7 +11,7 @@
 // Global CONSTANTS (TypeScript 1.5 introduced const. Very cool.)
 //
 const APP_NAME = "CourounOS"; // 'cause Bob and I were at a loss for a better name.
-const APP_VERSION = "0.3.0"; // What did you expect?
+const APP_VERSION = "0.4.0"; // What did you expect?
 const CPU_CLOCK_INTERVAL = 50; // This is in ms (milliseconds) so 1000 = 1 second.
 const TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
 // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
@@ -33,6 +33,7 @@ var _MemAccessor; // Utilize TypeScript's type annotation system to ensure that 
 var _MemoryManager; // Utilize TypeScript's type annotation system to ensure that _MemoryManager is an instance of the MemoryManager class.
 var _CpuDispatcher;
 var _CpuScheduler;
+var _Swap;
 var _PCBList = [];
 var _PCBQueue = null;
 var _CurrentProcess = null;
@@ -59,6 +60,7 @@ var _OsShell;
 var _SarcasticMode = false;
 // Global Device Driver Objects - page 12
 var _krnKeyboardDriver = null;
+var _krnDiskDriver = null;
 var _hardwareClockID = null;
 // For testing (and enrichment)...
 var Glados = null; // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .

@@ -6,7 +6,7 @@ module TSOS {
         public doContextSwitch() {
             if (_PCBQueue.getSize() > 0) {
                 let runningProcess = _CurrentProcess;
-                
+
                 if (runningProcess) {
                     _CurrentProcess.updateFromCPU(_CPU.PC, _CPU.IR, _CPU.Acc, _CPU.Xreg, _CPU.Yreg, _CPU.Zflag);
                     _CPU.init();
@@ -16,8 +16,13 @@ module TSOS {
 
                     _PCBQueue.enqueue(_CurrentProcess);
                 }
-
+                
                 _CurrentProcess = _PCBQueue.dequeue();
+
+                if (_CurrentProcess.location === Location.DISK_DRIVE) {
+                    _Swap.swap(_CurrentProcess);
+                }
+
                 _CurrentProcess.state = State.RUNNING;
     
                 Control.updatePCBRow(_CurrentProcess);

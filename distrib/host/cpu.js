@@ -114,6 +114,9 @@ var TSOS;
                 }
                 case TSOS.OpCode.BRK: {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERMINATE_IRQ, [_CurrentProcess]));
+                    if (_CpuScheduler.type === TSOS.SchedulingAlgorithm.FCFS) {
+                        _CpuScheduler.schedule();
+                    }
                     break;
                 }
                 case TSOS.OpCode.CPX: {

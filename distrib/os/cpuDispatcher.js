@@ -15,6 +15,9 @@ var TSOS;
                     _PCBQueue.enqueue(_CurrentProcess);
                 }
                 _CurrentProcess = _PCBQueue.dequeue();
+                if (_CurrentProcess.location === TSOS.Location.DISK_DRIVE) {
+                    _Swap.swap(_CurrentProcess);
+                }
                 _CurrentProcess.state = TSOS.State.RUNNING;
                 TSOS.Control.updatePCBRow(_CurrentProcess);
                 TSOS.Control.updateCPUView();

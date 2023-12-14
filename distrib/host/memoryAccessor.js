@@ -81,7 +81,6 @@ var TSOS;
          * @param address The address at which to read the MDR from.
          */
         readImmediate(address) {
-            this.memory.setMAR(address);
             if (_CurrentProcess != null) {
                 if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
@@ -92,6 +91,7 @@ var TSOS;
                 }
             }
             else {
+                this.memory.setMAR(address);
                 this.memory.read();
             }
         }
@@ -100,7 +100,13 @@ var TSOS;
          * @param address The address where we are setting the value.
          * @param value The value to place in the MDR.
          */
-        writeImmediate(address, value) {
+        writeImmediate(address, value, override = false) {
+            if (override) {
+                this.memory.setMAR(address);
+                this.memory.setMDR(value);
+                this.memory.write();
+                return;
+            }
             if (_CurrentProcess != null) {
                 if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
@@ -118,6 +124,24 @@ var TSOS;
             }
         }
         /**
+         * Sets the MAR and reads the value from memory at that location.
+         * @param address The address at which to read the MDR from.
+         */
+        // public readImmediate(address: number) {
+        //     this.memory.setMAR(address);
+        //     this.memory.read();
+        // }
+        // /**
+        //  * Sets the MAR and MDR to the specified values and forcibly writes to memory.
+        //  * @param address The address where we are setting the value.
+        //  * @param value The value to place in the MDR.
+        //  */
+        // public writeImmediate(address: number, value: number) {
+        //     this.memory.setMAR(address);
+        //     this.memory.setMDR(value);
+        //     this.memory.write();
+        // }
+        /**
          * Sets the LOB of the MAR.
          * @param lob Low order byte
          */
@@ -132,6 +156,19 @@ var TSOS;
             let lob = MemoryAccessor.flipEndianess(this.decodedByte1);
             let val = MemoryAccessor.flipEndianess(lob | hob);
             this.setMAR(val);
+        }
+        /**
+         * Dumps memory between the specified base and limit.
+         * @param base The base register.
+         * @param limit The limit register.
+         * @returns The array with the contents of memory between the base and the limit register.
+         */
+        getRange(base, limit) {
+            let memArr = [];
+            for (let i = base; i < limit; i++) {
+                memArr.push(_Memory.memory[i]); // don't want to set the MAR and mess anything up, so not calling readImmediate
+            }
+            return memArr;
         }
         /**
          * Static helper method that utilizes bitwise operators to flip endianess.
