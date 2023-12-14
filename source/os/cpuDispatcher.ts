@@ -19,24 +19,16 @@ module TSOS {
                 
                 _CurrentProcess = _PCBQueue.dequeue();
 
-                let newProcess = _CurrentProcess;
-
-                if (newProcess.location === Location.DISK_DRIVE) {
-                    _Swap.swap(newProcess);
+                if (_CurrentProcess.location === Location.DISK_DRIVE) {
+                    _Swap.swap(_CurrentProcess);
                 }
-                
-                newProcess.state = State.RUNNING;
 
-                console.log(`${newProcess.pid} (${newProcess.segment}): ${newProcess.base}-${newProcess.limit}`);
-                console.log(_MemAccessor.getRange(newProcess.base, newProcess.limit));
-                console.log("\n");
+                _CurrentProcess.state = State.RUNNING;
     
-                Control.updatePCBRow(newProcess);
+                Control.updatePCBRow(_CurrentProcess);
                 Control.updateCPUView();
 
-                _CPU.setState(newProcess.programCounter, newProcess.instructionRegister, newProcess.acc, newProcess.xReg, newProcess.yReg, newProcess.zFlag);
-
-                _CurrentProcess = newProcess;
+                _CPU.setState(_CurrentProcess.programCounter, _CurrentProcess.instructionRegister, _CurrentProcess.acc, _CurrentProcess.xReg, _CurrentProcess.yReg, _CurrentProcess.zFlag);
             } else {
                 _CPU.isExecuting = false;
                 _CPU.init();

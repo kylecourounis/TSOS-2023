@@ -24,7 +24,7 @@ var TSOS;
                 pcb.base = segment * 0x100;
                 pcb.limit = (segment * 0x100) + 0x100 - 1;
                 for (let i = 0; i < program.length; i++) {
-                    _MemAccessor.writeImmediate(pcb.segment * 0x100 + i, parseInt(program[i], 16));
+                    _MemAccessor.writeImmediate(pcb.segment * 0x100 + i, parseInt(program[i], 16), true);
                 }
                 return segment;
             }

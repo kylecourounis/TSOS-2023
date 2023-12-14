@@ -44,7 +44,7 @@ module TSOS {
                             // Data can stay, just mark the data as writable
                             sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + sessionStorage.getItem(`${t}:${s}:${b}`).substring(8));
                         } else {
-                            // Set each block to be 0s
+                            // Fill each block with 0s
                             // Use -- so that we don't point to the MBR
                             sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + "0".repeat((BLOCK_SIZE - (HEADER_SIZE * 2)) * 2));
                         }
@@ -310,7 +310,7 @@ module TSOS {
                                 needsNextBlock = false;
                             }
 
-                            // Check to see if there is still more to write
+                            // See if there is more to write
                             if (remainingContent.length > 0) {
                                 let newTSB = "";
 

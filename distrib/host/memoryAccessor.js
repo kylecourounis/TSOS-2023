@@ -100,7 +100,13 @@ var TSOS;
          * @param address The address where we are setting the value.
          * @param value The value to place in the MDR.
          */
-        writeImmediate(address, value) {
+        writeImmediate(address, value, override = false) {
+            if (override) {
+                this.memory.setMAR(address);
+                this.memory.setMDR(value);
+                this.memory.write();
+                return;
+            }
             if (_CurrentProcess != null) {
                 if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));

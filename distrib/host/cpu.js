@@ -166,7 +166,6 @@ var TSOS;
             if (_CurrentProcess) {
                 if (_CurrentProcess.state === TSOS.State.RUNNING) {
                     _Kernel.krnTrace('CPU cycle');
-                    console.log(`${_CurrentProcess.pid} - ${this.IR} ?= ${_CurrentProcess.instructionRegister}`);
                     // TODO: Accumulate CPU usage and profiling statistics here.
                     this.fetch();
                     let decodeCycles = TSOS.DecodeCycles.get(this.IR);

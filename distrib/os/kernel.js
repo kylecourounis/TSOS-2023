@@ -162,24 +162,31 @@ var TSOS;
                     _CurrentProcess = null;
                     _CPU.init();
                     _PCBQueue.remove(pcb);
+                    pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
+                    TSOS.Control.updatePCBRow(pcb);
                     _MemoryManager.deallocateMemory(pcb);
+                    _krnDiskDriver.deleteFile(pcb.swapFile); // In case it didn't get deleted.
                 }
                 else {
                     // Find the process that needs to be terminated
-                    for (let i = 0; i < _PCBQueue.getSize(); i++) {
-                        let process = _PCBQueue.dequeue();
+                    /* for (let i = 0; i < _PCBQueue.getSize(); i++) {
+                        let process: PCB = _PCBQueue.dequeue();
+
                         if (process.pid !== pcb.pid) {
                             _PCBQueue.enqueue(process);
                         }
-                    }
+                    } */
                 }
             }
-            if (pcb) {
-                pcb.state = TSOS.State.TERMINATED; // Set the state of the PCB to terminated
-                TSOS.Control.updatePCBRow(pcb);
+            /* if (pcb) {
+                pcb.state = State.TERMINATED; // Set the state of the PCB to terminated
+                
+                Control.updatePCBRow(pcb);
+
                 _MemoryManager.deallocateMemory(pcb);
+
                 _krnDiskDriver.deleteFile(pcb.swapFile); // In case it didn't get deleted.
-            }
+            } */
             if (this.singleRun) {
                 _CPU.isExecuting = false;
             }

@@ -11,7 +11,7 @@ var TSOS;
             this.type = type;
             this.quantum = 6;
             this.cycleCount = 0;
-            // this.setSchedule(type);
+            this.setSchedule(type);
         }
         schedule() {
             _CPU.isExecuting = true;

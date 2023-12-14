@@ -108,7 +108,16 @@ module TSOS {
          * @param address The address where we are setting the value.
          * @param value The value to place in the MDR.
          */
-        public writeImmediate(address: number, value: number) {
+        public writeImmediate(address: number, value: number, override: boolean = false) {
+            if (override) {
+                this.memory.setMAR(address);
+                this.memory.setMDR(value);
+                
+                this.memory.write();
+                
+                return;
+            }
+
             if (_CurrentProcess != null) {
                 if (address > _CurrentProcess.limit) {
                     _KernelInterruptQueue.enqueue(new Interrupt(MEM_ACC_VIOLATION_IRQ, [_CurrentProcess.segment, address]));
