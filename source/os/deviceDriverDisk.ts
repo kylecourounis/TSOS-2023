@@ -52,7 +52,9 @@ module TSOS {
                 }
             }
 
-            Control.initDiskView();
+            if (!quick) {
+                Control.initDiskView();
+            }
 
             this.formatted = true;
         }

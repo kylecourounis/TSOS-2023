@@ -277,6 +277,17 @@ module TSOS {
         public static initDiskView(): void {
             let diskTable = (<HTMLTableElement> document.getElementById("disk-drive"));
 
+            if (diskTable.rows.length > 1) {
+                // Reset the table
+                diskTable.innerHTML = `
+                                        <tr>
+                                        <th>TSB</th>
+                                        <th>Available</th>
+                                        <th>Next Block</th>
+                                        <th>Data</th>
+                                        </tr>`;
+            }
+
             for (let t = 0; t < TRACKS; t++) {
                 for (let s = 0; s < SECTORS; s++) {
                     for (let b = 0; b < BLOCKS; b++) {

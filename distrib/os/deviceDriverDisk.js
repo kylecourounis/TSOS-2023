@@ -38,14 +38,16 @@ var TSOS;
                             sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + sessionStorage.getItem(`${t}:${s}:${b}`).substring(8));
                         }
                         else {
-                            // Set each block to be 0s
+                            // Fill each block with 0s
                             // Use -- so that we don't point to the MBR
                             sessionStorage.setItem(`${t}:${s}:${b}`, "00------" + "0".repeat((TSOS.BLOCK_SIZE - (TSOS.HEADER_SIZE * 2)) * 2));
                         }
                     }
                 }
             }
-            TSOS.Control.initDiskView();
+            if (!quick) {
+                TSOS.Control.initDiskView();
+            }
             this.formatted = true;
         }
         createFile(filename) {
@@ -262,7 +264,7 @@ var TSOS;
                             if (sessionStorage.getItem(block).substring(2, 8) === "------") {
                                 needsNextBlock = false;
                             }
-                            // Check to see if there is still more to write
+                            // See if there is more to write
                             if (remainingContent.length > 0) {
                                 let newTSB = "";
                                 if (needsNextBlock) {

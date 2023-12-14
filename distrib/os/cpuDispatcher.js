@@ -19,9 +19,6 @@ var TSOS;
                     _Swap.swap(_CurrentProcess);
                 }
                 _CurrentProcess.state = TSOS.State.RUNNING;
-                /* console.log(`${_CurrentProcess.pid} (${_CurrentProcess.segment}): ${_CurrentProcess.base}-${_CurrentProcess.limit}`);
-                console.log(_MemAccessor.getRange(_CurrentProcess.base, _CurrentProcess.limit));
-                console.log("\n"); */
                 TSOS.Control.updatePCBRow(_CurrentProcess);
                 TSOS.Control.updateCPUView();
                 _CPU.setState(_CurrentProcess.programCounter, _CurrentProcess.instructionRegister, _CurrentProcess.acc, _CurrentProcess.xReg, _CurrentProcess.yReg, _CurrentProcess.zFlag);
